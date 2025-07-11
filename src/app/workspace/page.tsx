@@ -1,7 +1,7 @@
 // src/app/workspace/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { MoreHorizontal, PlusCircle } from "lucide-react";
+import { Loader2, MoreHorizontal, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import {
   DropdownMenu,
@@ -23,6 +23,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ProjectDialog } from "@/components/workspace/project-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { generateProjectImage } from "@/ai/flows/project-image-generator";
+import { initialProjects as defaultProjects } from "@/components/dashboard/ai-notifications";
 
 export type Project = {
   id: number;
@@ -34,67 +36,11 @@ export type Project = {
   dataAiHint: string;
 };
 
-const initialProjects: Project[] = [
-  {
-    id: 1,
-    title: "AI Note Taker",
-    description: "An intelligent assistant that transcribes and summarizes your meetings.",
-    stage: "MVP Build",
-    progress: 75,
-    image: "https://placehold.co/600x400.png",
-    dataAiHint: "artificial intelligence"
-  },
-  {
-    id: 2,
-    title: "Creator Platform",
-    description: "A digital marketplace for creators to sell their work directly to fans.",
-    stage: "Ideation",
-    progress: 30,
-    image: "https://placehold.co/600x400.png",
-    dataAiHint: "digital art"
-  },
-  {
-    id: 3,
-    title: "HyperLocal Delivery",
-    description: "24/7 delivery service designed for small towns and rural areas.",
-    stage: "Launched",
-    progress: 100,
-    image: "https://placehold.co/600x400.png",
-    dataAiHint: "delivery scooter"
-  },
-    {
-    id: 4,
-    title: "Fitness Gamified",
-    description: "Turn your workouts into an epic adventure with quests and rewards.",
-    stage: "Prototyping",
-    progress: 50,
-    image: "https://placehold.co/600x400.png",
-    dataAiHint: "fitness tracker"
-  },
-  {
-    id: 5,
-    title: "Eco Marketplace",
-    description: "A hub to connect with eco-friendly brands and sustainable products.",
-    stage: "Validation",
-    progress: 15,
-    image: "https://placehold.co/600x400.png",
-    dataAiHint: "eco friendly"
-  },
-  {
-    id: 6,
-    title: "VR Language App",
-    description: "Immerse yourself in virtual worlds to learn new languages conversationally.",
-    stage: "Launched",
-    progress: 100,
-    image: "https://placehold.co/600x400.png",
-    dataAiHint: "virtual reality"
-  },
-];
-
 export default function WorkspacePage() {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projects, setProjects] = useState<Project[]>(defaultProjects);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [generatingImageId, setGeneratingImageId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const handleAddNew = () => {
@@ -116,32 +62,67 @@ export default function WorkspacePage() {
   };
 
   const handleSaveProject = (projectData: Omit<Project, 'id' | 'image' | 'dataAiHint'>) => {
-    if (editingProject) {
-      // Update existing project
-      const updatedProjects = projects.map(p => 
-        p.id === editingProject.id ? { ...p, ...projectData } : p
+    const isNewProject = !editingProject;
+    let targetId: number;
+
+    if (isNewProject) {
+      const newProject: Project = {
+        ...projectData,
+        id: Date.now(),
+        image: "", // Placeholder while generating
+        dataAiHint: "new project"
+      };
+      targetId = newProject.id;
+      setProjects(prev => [newProject, ...prev]);
+       toast({
+        title: "Project Created!",
+        description: "Your new project is ready. Generating AI image...",
+      });
+    } else {
+       targetId = editingProject!.id;
+       const updatedProjects = projects.map(p => 
+        p.id === editingProject!.id ? { ...p, ...projectData, image: p.image, dataAiHint: p.dataAiHint } : p
       );
       setProjects(updatedProjects);
       toast({
         title: "Project Updated",
-        description: "Your project details have been saved.",
-      })
-    } else {
-      // Add new project
-      const newProject: Project = {
-        ...projectData,
-        id: Date.now(),
-        image: "https://placehold.co/600x400.png",
-        dataAiHint: "new project"
-      };
-      setProjects([newProject, ...projects]);
-      toast({
-        title: "Project Created!",
-        description: "Your new project is ready to go.",
-      })
+        description: "Your project details have been saved. Regenerating image...",
+      });
     }
+    
     setIsDialogOpen(false);
-    setEditingProject(null);
+    setGeneratingImageId(targetId);
+    
+    // AI Image Generation
+    generateProjectImage({ 
+        title: projectData.title, 
+        description: projectData.description 
+    }).then(result => {
+        setProjects(currentProjects => 
+            currentProjects.map(p => 
+                p.id === targetId ? { ...p, image: result.imageUrl } : p
+            )
+        );
+        toast({
+            title: "AI Image Generated!",
+            description: "Your project has a shiny new look.",
+        });
+    }).catch(error => {
+        console.error("Failed to generate project image:", error);
+        toast({
+          title: "AI Image Generation Failed",
+          description: "Could not generate an image. Using a default.",
+          variant: "destructive",
+        });
+        setProjects(currentProjects => 
+            currentProjects.map(p => 
+                p.id === targetId ? { ...p, image: "https://placehold.co/600x400.png" } : p
+            )
+        );
+    }).finally(() => {
+        setGeneratingImageId(null);
+        setEditingProject(null);
+    });
   };
 
   return (
@@ -153,21 +134,29 @@ export default function WorkspacePage() {
             <p className="text-muted-foreground text-sm">This is where your ideas take flight.</p>
           </div>
           <Button onClick={handleAddNew}>
-            <PlusCircle className="mr-2 h-4 w-4" /> New Project
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Project
           </Button>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {projects.map((project) => (
             <Card key={project.id} className="overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
               <CardHeader className="relative p-0 h-48">
-                <Image
-                  alt={project.title}
-                  className="object-cover w-full h-full"
-                  src={project.image}
-                  width="600"
-                  height="400"
-                  data-ai-hint={project.dataAiHint}
-                />
+                {generatingImageId === project.id || !project.image ? (
+                   <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                    </div>
+                ) : (
+                   <Image
+                    alt={project.title}
+                    className="object-cover w-full h-full"
+                    src={project.image}
+                    width={600}
+                    height={400}
+                    data-ai-hint={project.dataAiHint}
+                    unoptimized={project.image.startsWith('data:image')}
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute top-4 right-4">
                   <DropdownMenu>

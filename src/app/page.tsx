@@ -1,9 +1,6 @@
 import {
-  Activity,
   ArrowUp,
-  CircleDollarSign,
   Lightbulb,
-  Plus,
   Rocket,
   Users,
 } from 'lucide-react';
@@ -25,6 +22,9 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { AINotifications } from '@/components/dashboard/ai-notifications';
+import { initialProjects } from '@/components/dashboard/ai-notifications';
+
 
 export default function Home() {
   return (
@@ -112,89 +112,29 @@ export default function Home() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>
-                    <div className="font-medium">AI-Powered Note Taker</div>
-                    <div className="hidden text-sm text-muted-foreground md:inline">
-                      An intelligent assistant for meetings
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <Badge className="text-xs" variant="secondary">
-                      MVP Build
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">🚀 1,204</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <div className="font-medium">Creator-First Platform</div>
-                    <div className="hidden text-sm text-muted-foreground md:inline">
-                      A marketplace for digital creators
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <Badge className="text-xs" variant="secondary">
-                      Ideation
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">💡 890</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>
-                    <div className="font-medium">HyperLocal Delivery</div>
-                    <div className="hidden text-sm text-muted-foreground md:inline">
-                      24/7 delivery service for small towns
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <Badge className="text-xs" variant="outline">
-                      Launched
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">🔥 10,432</TableCell>
-                </TableRow>
+                {initialProjects.slice(0,3).map((project) => (
+                   <TableRow key={project.id}>
+                    <TableCell>
+                      <div className="font-medium">{project.title}</div>
+                      <div className="hidden text-sm text-muted-foreground md:inline">
+                        {project.description}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <Badge className="text-xs" variant={project.stage === 'Launched' ? 'default' : 'secondary'}>
+                        {project.stage}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                        {project.stage === 'Launched' ? `🔥 ${project.id * 1337}` : project.stage === 'MVP Build' ? `🚀 ${project.id * 233}` : `💡 ${project.id * 97}`}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Live AI Notifications</CardTitle>
-            <CardDescription>
-              Your copilot is keeping an eye on things for you.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="flex items-center gap-4">
-              <Lightbulb className="h-8 w-8 text-primary" />
-              <div className="grid gap-1">
-                <p className="text-sm font-medium leading-none">
-                  Your pitch deck is missing a CTA - fix it?
-                </p>
-                <p className="text-sm text-muted-foreground">5 min ago</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Rocket className="h-8 w-8 text-primary" />
-              <div className="grid gap-1">
-                <p className="text-sm font-medium leading-none">
-                  Your launch date is close. Schedule pre-launch tweets?
-                </p>
-                <p className="text-sm text-muted-foreground">1 hour ago</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <Users className="h-8 w-8 text-primary" />
-              <div className="grid gap-1">
-                <p className="text-sm font-medium leading-none">
-                  You just hit 200 early signups! Ready for Phase 2?
-                </p>
-                <p className="text-sm text-muted-foreground">3 hours ago</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <AINotifications />
       </div>
     </div>
   );
