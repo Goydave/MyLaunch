@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -56,12 +57,13 @@ export default function CopilotPage() {
             <div className="h-4 w-full bg-muted rounded animate-pulse" />
             <div className="h-4 w-4/5 bg-muted rounded animate-pulse" />
             <div className="h-4 w-full bg-muted rounded animate-pulse" />
+            <div className="h-4 w-3/4 bg-muted rounded animate-pulse" />
         </div>
       );
     }
 
     if (!output) {
-      return <p className="text-sm text-muted-foreground">AI suggestions will appear here.</p>;
+      return <p className="text-sm text-muted-foreground">Your AI Co-founder's insights will appear here.</p>;
     }
     
     if (Array.isArray(output)) {
@@ -80,7 +82,7 @@ export default function CopilotPage() {
                     <p className="text-sm text-muted-foreground">{output.shortDescription}</p>
                 </div>
                  <div>
-                    <h4 className="font-semibold text-sm">Long Description</h4>
+                    <h4 className="font-semibold text-sm">Detailed Description</h4>
                     <p className="text-sm text-muted-foreground whitespace-pre-wrap">{output.longDescription}</p>
                 </div>
             </div>
@@ -91,23 +93,23 @@ export default function CopilotPage() {
   };
 
   const placeholders: { [key: string]: string } = {
-    'name-generator': 'e.g., A social media app for pet owners...',
-    'feature-suggester': 'e.g., A platform for local artists to sell prints...',
-    'content-generator': 'e.g., A subscription box for eco-friendly products...',
+    'name-generator': 'e.g., A social media app exclusively for astronauts...',
+    'feature-suggester': 'e.g., A platform for local artists to sell NFT prints...',
+    'content-generator': 'e.g., A subscription box for alien-themed snacks...',
   };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <div>
-        <h1 className="text-lg font-semibold md:text-2xl">AI Copilot</h1>
-        <p className="text-muted-foreground text-sm">Your creative partner for brainstorming and content.</p>
+        <h1 className="text-lg font-semibold md:text-2xl">AI Co-founder</h1>
+        <p className="text-muted-foreground text-sm">Your partner in building the next big thing. Let's get rich.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="lg:col-span-1">
           <CardHeader>
-            <CardTitle>Generator</CardTitle>
-            <CardDescription>Select a tool and provide some context.</CardDescription>
+            <CardTitle>Strategy Hub</CardTitle>
+            <CardDescription>Select a tool and let's start building your empire.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Tabs value={activeTab} onValueChange={(value) => { setActiveTab(value); resetState(); }}>
@@ -119,13 +121,13 @@ export default function CopilotPage() {
             </Tabs>
 
             <div className="space-y-2">
-                <label htmlFor="ai-input" className="text-sm font-medium">Project Idea or Description</label>
+                <label htmlFor="ai-input" className="text-sm font-medium">Your World-Changing Idea</label>
                 <Textarea
                     id="ai-input"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     placeholder={placeholders[activeTab]}
-                    className="min-h-[100px]"
+                    className="min-h-[120px]"
                 />
             </div>
 
@@ -133,12 +135,12 @@ export default function CopilotPage() {
               {isLoading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
+                  Thinking...
                 </>
               ) : (
                 <>
                   <Wand2 className="mr-2 h-4 w-4" />
-                  Generate
+                  Execute
                 </>
               )}
             </Button>
@@ -147,10 +149,10 @@ export default function CopilotPage() {
         
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>AI Suggestions</CardTitle>
-            <CardDescription>Results from your AI Copilot.</CardDescription>
+            <CardTitle>Cofounder's Analysis</CardTitle>
+            <CardDescription>Actionable insights from your AI partner.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="min-h-[200px]">
             {renderOutput()}
           </CardContent>
         </Card>
