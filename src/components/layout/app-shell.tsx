@@ -1,8 +1,10 @@
+
 "use client";
 
 import Link from "next/link";
 import {
   Bell,
+  CreditCard,
   Home,
   Lightbulb,
   LineChart,
@@ -44,6 +46,7 @@ const navItems = [
   { href: "/studio", icon: Rocket, label: "Studio" },
   { href: "/learning", icon: ShieldCheck, label: "Learning" },
   { href: "/copilot", icon: Lightbulb, label: "AI Copilot" },
+  { href: "/billing", icon: CreditCard, label: "Billing" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
@@ -91,8 +94,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-2 pt-0 md:p-4 md:pt-0">
-                <Button size="sm" className="w-full">
-                  Upgrade
+                <Button size="sm" className="w-full" asChild>
+                  <Link href="/billing">Upgrade</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -145,8 +148,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button size="sm" className="w-full">
-                      Upgrade
+                    <Button size="sm" className="w-full" asChild>
+                      <Link href="/billing">Upgrade</Link>
                     </Button>
                   </CardContent>
                 </Card>
