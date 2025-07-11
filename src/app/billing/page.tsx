@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { usePlan, type Plan } from "@/hooks/use-plan";
 
 const plans = [
     {
@@ -49,9 +49,9 @@ const plans = [
 
 
 export default function BillingPage() {
-  const [currentPlan, setCurrentPlan] = useState("Free");
+  const { plan: currentPlan, setPlan: setCurrentPlan } = usePlan();
 
-  const handlePlanChange = (planName: string) => {
+  const handlePlanChange = (planName: Plan) => {
     if (planName !== currentPlan) {
       setCurrentPlan(planName);
       toast({
@@ -104,7 +104,7 @@ export default function BillingPage() {
                        <Button 
                           className="w-full" 
                           variant={isCurrent ? "outline" : "default"}
-                          onClick={() => handlePlanChange(plan.name)}
+                          onClick={() => handlePlanChange(plan.name as Plan)}
                           disabled={isCurrent}
                         >
                           {getCtaText(plan.name)}

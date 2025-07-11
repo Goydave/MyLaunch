@@ -3,6 +3,7 @@ import './globals.css';
 import { AppShell } from '@/components/layout/app-shell';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/hooks/use-theme';
+import { PlanProvider } from '@/hooks/use-plan';
 
 export const metadata: Metadata = {
   title: 'MyLaunch MVP',
@@ -23,10 +24,12 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <ThemeProvider defaultTheme="light">
-          <AppShell>
-            {children}
-          </AppShell>
-          <Toaster />
+          <PlanProvider>
+            <AppShell>
+              {children}
+            </AppShell>
+            <Toaster />
+          </PlanProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,3 +1,4 @@
+
 // src/app/pitch-deck/page.tsx
 "use client";
 
@@ -19,6 +20,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Loader2, Wand2 } from "lucide-react";
 import { generatePitchDeck, type PitchDeckOutput } from "@/ai/flows/pitch-deck-generator";
+import { usePlan } from "@/hooks/use-plan";
+import { UpgradePro } from "@/components/layout/upgrade-pro";
 
 const formSchema = z.object({
   projectIdea: z.string().min(20, "Please provide a detailed description of your project idea (at least 20 characters)."),
@@ -28,6 +31,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function PitchDeckPage() {
+  const { plan } = usePlan();
   const [pitchDeck, setPitchDeck] = useState<PitchDeckOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -87,6 +91,10 @@ export default function PitchDeckPage() {
     }
 
     return <p className="text-sm text-muted-foreground">Your AI-generated pitch deck will appear here.</p>;
+  }
+  
+  if (plan === "Free") {
+    return <UpgradePro featureName="Pitch Deck Generator" />;
   }
 
   return (

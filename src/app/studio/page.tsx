@@ -1,7 +1,13 @@
+
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import { usePlan } from "@/hooks/use-plan";
+import { UpgradePro } from "@/components/layout/upgrade-pro";
+
 
 const templates = [
   {
@@ -31,6 +37,12 @@ const templates = [
 ];
 
 export default function StudioPage() {
+  const { plan } = usePlan();
+
+  if (plan === "Free") {
+    return <UpgradePro featureName="Launch Studio" />;
+  }
+  
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
       <div className="flex items-center justify-between">
