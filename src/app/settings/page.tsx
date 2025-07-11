@@ -18,6 +18,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "@/hooks/use-toast"
 import { useTheme } from "@/hooks/use-theme"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const profileFormSchema = z.object({
   name: z
@@ -80,6 +91,21 @@ export default function SettingsPage() {
       title: "Theme updated!",
       description: `Theme set to ${data.theme}.`,
     })
+  }
+
+  function handleLogout() {
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    });
+  }
+
+  function handleDeleteAccount() {
+    toast({
+        title: "Account Deleted",
+        description: "Your account has been permanently deleted.",
+        variant: "destructive"
+    });
   }
 
   return (
@@ -235,10 +261,50 @@ export default function SettingsPage() {
                                 </FormItem>
                             )}
                             />
-
                         <Button type="submit">Update preferences</Button>
                     </form>
                 </Form>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle>Account Actions</CardTitle>
+                <CardDescription>Manage your account preferences and actions.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                 <div className="flex justify-between items-center p-4 border rounded-lg">
+                    <div>
+                        <p className="font-medium">Log Out</p>
+                        <p className="text-sm text-muted-foreground">Ends your current session.</p>
+                    </div>
+                    <Button variant="outline" onClick={handleLogout}>Log Out</Button>
+                </div>
+                 <div className="flex justify-between items-center p-4 border border-destructive/50 rounded-lg">
+                    <div>
+                        <p className="font-medium text-destructive">Delete Account</p>
+                        <p className="text-sm text-muted-foreground">Permanently delete your account and all data.</p>
+                    </div>
+                     <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive">Delete</Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your
+                            account and remove your data from our servers.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDeleteAccount} className={buttonVariants({ variant: "destructive" })}>
+                            Delete Account
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                </div>
             </CardContent>
         </Card>
       </div>
