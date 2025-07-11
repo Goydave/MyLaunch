@@ -7,6 +7,7 @@ import {
   Lightbulb,
   LineChart,
   Package2,
+  Presentation,
   Rocket,
   Settings,
   ShieldCheck,
@@ -39,6 +40,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/", icon: Home, label: "Home" },
   { href: "/workspace", icon: Warehouse, label: "Workspace" },
+  { href: "/pitch-deck", icon: Presentation, label: "Pitch Deck" },
   { href: "/studio", icon: Rocket, label: "Studio" },
   { href: "/learning", icon: ShieldCheck, label: "Learning" },
   { href: "/copilot", icon: Lightbulb, label: "AI Copilot" },
