@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "@/hooks/use-toast"
+import { useTheme } from "@/hooks/use-theme"
 
 const profileFormSchema = z.object({
   name: z
@@ -36,14 +37,13 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
-// This can be set to the user's actual values.
 const defaultValues: Partial<ProfileFormValues> = {
   name: "David Paulino",
   email: "david.paulino@example.com"
 }
 
 const appearanceFormSchema = z.object({
-  theme: z.enum(["light", "dark"], {
+  theme: z.enum(["light", "dark", "system"], {
     required_error: "Please select a theme.",
   }),
 })
@@ -52,6 +52,8 @@ type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
 
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme()
+
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
@@ -60,8 +62,8 @@ export default function SettingsPage() {
 
   const appearanceForm = useForm<AppearanceFormValues>({
     resolver: zodResolver(appearanceFormSchema),
-    defaultValues: {
-        theme: "light",
+    values: {
+        theme: theme
     }
   })
 
@@ -73,12 +75,10 @@ export default function SettingsPage() {
   }
 
   function onAppearanceSubmit(data: AppearanceFormValues) {
-    if (typeof window !== 'undefined') {
-        document.documentElement.classList.toggle("dark", data.theme === "dark");
-    }
+    setTheme(data.theme)
     toast({
       title: "Theme updated!",
-      description: `Switched to ${data.theme} mode.`,
+      description: `Theme set to ${data.theme}.`,
     })
   }
 
@@ -156,26 +156,77 @@ export default function SettingsPage() {
                             render={({ field }) => (
                                 <FormItem className="space-y-3">
                                 <FormLabel>Theme</FormLabel>
+                                <FormDescription>
+                                    Select the theme for the application.
+                                </FormDescription>
                                 <FormControl>
                                     <RadioGroup
                                     onValueChange={field.onChange}
                                     defaultValue={field.value}
-                                    className="flex flex-col space-y-1"
+                                    className="grid max-w-md grid-cols-3 gap-8 pt-2"
                                     >
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl>
-                                        <RadioGroupItem value="light" />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">
-                                        Light
+                                    <FormItem>
+                                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                                            <FormControl>
+                                                <RadioGroupItem value="light" className="sr-only" />
+                                            </FormControl>
+                                            <div className="items-center rounded-md border-2 border-muted p-1 hover:border-accent">
+                                                <div className="space-y-2 rounded-sm bg-[#ecedef] p-2">
+                                                <div className="space-y-2 rounded-md bg-white p-2 shadow-sm">
+                                                    <div className="h-2 w-16 rounded-lg bg-[#ecedef]" />
+                                                    <div className="h-2 w-12 rounded-lg bg-[#ecedef]" />
+                                                </div>
+                                                <div className="flex items-center space-x-2 rounded-md bg-white p-2 shadow-sm">
+                                                    <div className="h-4 w-4 rounded-full bg-[#ecedef]" />
+                                                    <div className="h-2 w-20 rounded-lg bg-[#ecedef]" />
+                                                </div>
+                                                </div>
+                                            </div>
+                                            <span className="block w-full p-2 text-center font-normal">Light</span>
                                         </FormLabel>
                                     </FormItem>
-                                    <FormItem className="flex items-center space-x-3 space-y-0">
-                                        <FormControl>
-                                        <RadioGroupItem value="dark" />
-                                        </FormControl>
-                                        <FormLabel className="font-normal">
-                                        Dark
+                                    <FormItem>
+                                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                                            <FormControl>
+                                                <RadioGroupItem value="dark" className="sr-only" />
+                                            </FormControl>
+                                            <div className="items-center rounded-md border-2 border-muted bg-popover p-1 hover:bg-accent hover:text-accent-foreground">
+                                            <div className="space-y-2 rounded-sm bg-slate-950 p-2">
+                                                <div className="space-y-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                                    <div className="h-2 w-16 rounded-lg bg-slate-400" />
+                                                    <div className="h-2 w-12 rounded-lg bg-slate-400" />
+                                                </div>
+                                                <div className="flex items-center space-x-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                                    <div className="h-4 w-4 rounded-full bg-slate-400" />
+                                                    <div className="h-2 w-20 rounded-lg bg-slate-400" />
+                                                </div>
+                                            </div>
+                                            </div>
+                                            <span className="block w-full p-2 text-center font-normal">Dark</span>
+                                        </FormLabel>
+                                    </FormItem>
+                                     <FormItem>
+                                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                                            <FormControl>
+                                                <RadioGroupItem value="system" className="sr-only" />
+                                            </FormControl>
+                                            <div className="items-center rounded-md border-2 border-muted bg-popover p-1 hover:bg-accent hover:text-accent-foreground">
+                                                <div className="flex rounded-sm shadow-sm">
+                                                    <div className="w-1/2 space-y-2 rounded-l-sm bg-[#ecedef] p-2">
+                                                        <div className="space-y-2 rounded-md bg-white p-2 shadow-sm">
+                                                            <div className="h-2 w-10 rounded-lg bg-[#ecedef]" />
+                                                            <div className="h-2 w-8 rounded-lg bg-[#ecedef]" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="w-1/2 space-y-2 rounded-r-sm bg-slate-950 p-2">
+                                                         <div className="space-y-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                                            <div className="h-2 w-10 rounded-lg bg-slate-400" />
+                                                            <div className="h-2 w-8 rounded-lg bg-slate-400" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <span className="block w-full p-2 text-center font-normal">System</span>
                                         </FormLabel>
                                     </FormItem>
                                     </RadioGroup>
