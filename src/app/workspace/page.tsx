@@ -91,23 +91,23 @@ export default function WorkspacePage() {
       <div className="grid gap-4 md:gap-8 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((project, index) => (
           <Card key={index}>
-            <CardHeader className="relative">
+            <CardHeader className="relative p-0">
               <Image
                 alt={project.title}
-                className="aspect-video w-full rounded-md object-cover"
+                className="aspect-video w-full rounded-t-lg object-cover"
                 height="338"
                 src={project.image}
                 width="600"
                 data-ai-hint={project.dataAiHint}
               />
-               <div className="absolute top-6 right-6">
+               <div className="absolute top-4 right-4">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       aria-haspopup="true"
                       size="icon"
                       variant="outline"
-                      className="h-8 w-8 bg-white/80 backdrop-blur-sm"
+                      className="h-8 w-8 bg-white/80 backdrop-blur-sm dark:bg-zinc-950/80"
                     >
                       <MoreHorizontal className="h-4 w-4" />
                       <span className="sr-only">Toggle menu</span>
@@ -122,15 +122,15 @@ export default function WorkspacePage() {
                 </DropdownMenu>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-6">
               <Badge variant="secondary" className="mb-2">{project.stage}</Badge>
               <CardTitle className="text-lg">{project.title}</CardTitle>
-              <CardDescription className="mt-1 line-clamp-2">{project.description}</CardDescription>
+              <CardDescription className="mt-1 line-clamp-2 h-10">{project.description}</CardDescription>
             </CardContent>
-            <CardFooter>
+            <CardFooter className="p-6 pt-0">
               <div className="flex w-full flex-col gap-2 text-sm">
                 <div className="flex justify-between">
-                  <span>Progress</span>
+                  <span className="font-medium">Progress</span>
                   <span className="text-muted-foreground">{project.progress}%</span>
                 </div>
                 <Progress value={project.progress} aria-label={`${project.progress}% complete`} />
