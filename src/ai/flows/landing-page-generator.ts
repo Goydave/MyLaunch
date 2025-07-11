@@ -10,25 +10,10 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { LandingPageInputSchema, LandingPageOutputSchema, type LandingPageInput, type LandingPageOutput } from '@/ai/schemas/landing-page';
 
-export const LandingPageInputSchema = z.object({
-  projectIdea: z.string().describe('A detailed description of the project idea.'),
-  branding: z.string().describe("A description of the brand's desired feel and vibe (e.g., 'modern and sleek', 'fun and quirky')."),
-});
-export type LandingPageInput = z.infer<typeof LandingPageInputSchema>;
+export { type LandingPageInput, type LandingPageOutput };
 
-const FeatureSchema = z.object({
-    title: z.string().describe("A short, catchy title for the feature."),
-    description: z.string().describe("A one-sentence description of the feature's benefit."),
-});
-
-export const LandingPageOutputSchema = z.object({
-  headline: z.string().describe("A powerful, attention-grabbing headline for the landing page."),
-  subheadline: z.string().describe("A short, descriptive subheadline that expands on the headline."),
-  heroImageUrl: z.string().describe("A data URI of a visually stunning, relevant hero image for the landing page. The image should be in PNG format. The aspect ratio must be 16:9."),
-  features: z.array(FeatureSchema).length(3).describe("A list of the top 3 key features of the product."),
-});
-export type LandingPageOutput = z.infer<typeof LandingPageOutputSchema>;
 
 export async function generateLandingPage(input: LandingPageInput): Promise<LandingPageOutput> {
   return generateLandingPageFlow(input);
@@ -84,10 +69,12 @@ const generateLandingPageFlow = ai.defineFlow(
         if (!textOutput) {
             throw new Error("Failed to generate landing page text.");
         }
-        const { media } = await landingPageImagePrompt({
-            headline: textOutput.headline,
-            subheadline: textOutput.subheadline,
-            branding: input.branding,
+        const { media } = await ai.generate({
+            model: 'googleai/gemini-2.0-flash-preview-image-generation',
+            prompt: `Generate a visually stunning, high-quality hero image for a website's landing page. The image should be abstract and conceptual, reflecting the branding and the website's purpose. Do NOT include any text or logos in the image. The image must have a professional, modern aesthetic. Website Headline: ${textOutput.headline}. Website Subheadline: ${textOutput.subheadline}. Branding/Vibe: ${input.branding}`,
+            config: {
+                responseModalities: ['TEXT', 'IMAGE'],
+            },
         });
         return media?.url;
     });
