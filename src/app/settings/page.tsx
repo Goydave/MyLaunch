@@ -1,5 +1,7 @@
+
 "use client"
 
+import { useEffect, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -63,6 +65,7 @@ type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
 
 
 export default function SettingsPage() {
+  const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme()
 
   const profileForm = useForm<ProfileFormValues>({
@@ -73,10 +76,18 @@ export default function SettingsPage() {
 
   const appearanceForm = useForm<AppearanceFormValues>({
     resolver: zodResolver(appearanceFormSchema),
-    values: {
-        theme: theme
-    }
   })
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      appearanceForm.setValue("theme", theme);
+    }
+  }, [theme, isMounted, appearanceForm]);
+
 
   function onProfileSubmit(data: ProfileFormValues) {
     toast({
@@ -106,6 +117,10 @@ export default function SettingsPage() {
         description: "Your account has been permanently deleted.",
         variant: "destructive"
     });
+  }
+  
+  if (!isMounted) {
+    return null;
   }
 
   return (
@@ -172,7 +187,7 @@ export default function SettingsPage() {
                 <CardDescription>
                 Customize the appearance of the app.
                 </CardDescription>
-            </CardHeader>
+            </Header>
             <CardContent>
                <Form {...appearanceForm}>
                     <form onSubmit={appearanceForm.handleSubmit(onAppearanceSubmit)} className="space-y-8">
