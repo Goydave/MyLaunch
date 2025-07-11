@@ -31,6 +31,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useUser } from "@/hooks/use-user"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Camera } from "lucide-react"
 
 const profileFormSchema = z.object({
   name: z
@@ -50,11 +53,6 @@ const profileFormSchema = z.object({
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>
 
-const defaultValues: Partial<ProfileFormValues> = {
-  name: "David Paulino",
-  email: "david.paulino@example.com"
-}
-
 const appearanceFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"], {
     required_error: "Please select a theme.",
@@ -63,14 +61,14 @@ const appearanceFormSchema = z.object({
 
 type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
 
-
 export default function SettingsPage() {
   const [isMounted, setIsMounted] = useState(false);
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
+  const { user, setUser } = useUser();
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues,
+    defaultValues: { name: user.name, email: user.email },
     mode: "onChange",
   })
 
@@ -85,14 +83,26 @@ export default function SettingsPage() {
   useEffect(() => {
     if (isMounted) {
       appearanceForm.setValue("theme", theme);
+      profileForm.reset({ name: user.name, email: user.email });
     }
-  }, [theme, isMounted, appearanceForm]);
-
+  }, [theme, user, isMounted, appearanceForm, profileForm]);
 
   function onProfileSubmit(data: ProfileFormValues) {
+    setUser({ ...user, name: data.name, email: data.email });
     toast({
       title: "Profile updated!",
       description: "Your new profile information has been saved.",
+    })
+  }
+  
+  function handleAvatarChange() {
+    // In a real app, this would open a file picker.
+    // Here, we'll just cycle through a few placeholder images.
+    const newAvatarUrl = `https://i.pravatar.cc/150?u=${Date.now()}`;
+    setUser({ ...user, avatar: newAvatarUrl });
+    toast({
+        title: "Avatar updated!",
+        description: "Your new profile picture has been saved.",
     })
   }
 
@@ -144,6 +154,26 @@ export default function SettingsPage() {
               <CardContent>
                   <Form {...profileForm}>
                       <form onSubmit={profileForm.handleSubmit(onProfileSubmit)} className="space-y-8">
+                           <div className="flex items-center gap-4">
+                              <div className="relative">
+                                <Avatar className="h-20 w-20">
+                                  <AvatarImage src={user.avatar} alt="User avatar" />
+                                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <Button 
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  className="absolute bottom-0 right-0 rounded-full"
+                                  onClick={handleAvatarChange}
+                                >
+                                  <Camera className="h-4 w-4"/>
+                                  <span className="sr-only">Change profile picture</span>
+                                </Button>
+                              </div>
+                              <p className="text-sm text-muted-foreground">Click the camera to change your avatar.</p>
+                            </div>
+
                           <FormField
                           control={profileForm.control}
                           name="name"
