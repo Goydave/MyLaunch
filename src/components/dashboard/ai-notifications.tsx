@@ -1,3 +1,4 @@
+
 // src/components/dashboard/ai-notifications.tsx
 "use client";
 
@@ -11,7 +12,7 @@ export const initialProjects: Project[] = [
   {
     id: 1,
     title: "AI Note Taker",
-    description: "An intelligent assistant that transcribes and summarizes your meetings.",
+    description: "An intelligent assistant that records, transcribes, and summarizes your meetings, so you never miss a key decision. Turns hours of audio into actionable insights in seconds.",
     stage: "MVP Build",
     progress: 75,
     image: "https://placehold.co/600x400.png",
@@ -20,7 +21,7 @@ export const initialProjects: Project[] = [
   {
     id: 2,
     title: "Creator Platform",
-    description: "A digital marketplace for creators to sell their work directly to fans.",
+    description: "A digital marketplace that empowers artists and creators to sell their work directly to fans, bypassing traditional gatekeepers and fostering a direct connection with their audience.",
     stage: "Ideation",
     progress: 30,
     image: "https://placehold.co/600x400.png",
@@ -29,7 +30,7 @@ export const initialProjects: Project[] = [
   {
     id: 3,
     title: "HyperLocal Delivery",
-    description: "24/7 delivery service designed for small towns and rural areas.",
+    description: "A 24/7 delivery service designed for small towns and rural areas, bringing the convenience of city living to underserved communities with a focus on supporting local businesses.",
     stage: "Launched",
     progress: 100,
     image: "https://placehold.co/600x400.png",
@@ -38,7 +39,7 @@ export const initialProjects: Project[] = [
     {
     id: 4,
     title: "Fitness Gamified",
-    description: "Turn your workouts into an epic adventure with quests and rewards.",
+    description: "Turn your workouts into an epic adventure. An app that uses game mechanics, quests, and rewards to make fitness fun, motivating you to level up your health.",
     stage: "Prototyping",
     progress: 50,
     image: "https://placehold.co/600x400.png",
@@ -47,7 +48,7 @@ export const initialProjects: Project[] = [
   {
     id: 5,
     title: "Eco Marketplace",
-    description: "A hub to connect with eco-friendly brands and sustainable products.",
+    description: "A curated hub connecting conscious consumers with truly sustainable and eco-friendly brands. Shop with confidence, knowing every product meets the highest ethical standards.",
     stage: "Validation",
     progress: 15,
     image: "https://placehold.co/600x400.png",
@@ -56,7 +57,7 @@ export const initialProjects: Project[] = [
   {
     id: 6,
     title: "VR Language App",
-    description: "Immerse yourself in virtual worlds to learn new languages conversationally.",
+    description: "Immerse yourself in virtual worlds to learn new languages through conversation, not conjugation. Practice speaking with AI-powered characters in realistic scenarios.",
     stage: "Launched",
     progress: 100,
     image: "https://placehold.co/600x400.png",
@@ -111,10 +112,7 @@ const getAINotifications = (projects: Project[]) => {
 }
 
 
-export function AINotifications() {
-    // In a real app, this would be fetched from a data source
-    // For this prototype, we'll use the initialProjects from the workspace
-    const projects = initialProjects;
+export function AINotifications({ projects }: { projects: Project[] }) {
     const notifications = getAINotifications(projects);
 
     return (
