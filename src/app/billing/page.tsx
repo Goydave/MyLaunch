@@ -1,7 +1,11 @@
 
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 const plans = [
     {
@@ -14,12 +18,10 @@ const plans = [
             "Basic AI Copilot access",
             "Community support",
         ],
-        cta: "Current Plan",
-        variant: "outline"
     },
     {
         name: "Pro",
-        price: "$29",
+        price: "$12.99",
         period: "/ month",
         description: "For growing teams that need more power and support.",
         features: [
@@ -29,13 +31,11 @@ const plans = [
             "Priority email support",
             "Launch Studio access"
         ],
-        cta: "Upgrade to Pro",
-        variant: "default"
     },
     {
         name: "Enterprise",
-        price: "Custom",
-        period: "",
+        price: "$29.99",
+        period: "/ month",
         description: "For large organizations with custom needs.",
         features: [
             "Everything in Pro",
@@ -44,13 +44,30 @@ const plans = [
             "24/7 priority support",
             "On-premise deployment option"
         ],
-        cta: "Contact Sales",
-        variant: "outline"
     },
 ]
 
 
 export default function BillingPage() {
+  const [currentPlan, setCurrentPlan] = useState("Free");
+
+  const handlePlanChange = (planName: string) => {
+    if (planName !== currentPlan) {
+      setCurrentPlan(planName);
+      toast({
+        title: "Plan Changed!",
+        description: `You've successfully switched to the ${planName} plan.`,
+      })
+    }
+  };
+
+  const getCtaText = (planName: string) => {
+    if (planName === currentPlan) return "Current Plan";
+    if (planName === 'Enterprise' && currentPlan !== 'Enterprise') return "Upgrade to Enterprise";
+    if (planName === 'Pro' && currentPlan === 'Free') return "Upgrade to Pro";
+    return "Select Plan";
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
        <div>
@@ -61,33 +78,41 @@ export default function BillingPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {plans.map((plan) => (
-            <Card key={plan.name} className={`flex flex-col ${plan.name === 'Pro' ? 'border-primary' : ''}`}>
-                <CardHeader>
-                    <CardTitle>{plan.name}</CardTitle>
-                    <CardDescription>{plan.description}</CardDescription>
-                    <div className="flex items-baseline pt-4">
-                        <span className="text-3xl font-bold">{plan.price}</span>
-                        {plan.period && <span className="text-sm text-muted-foreground">{plan.period}</span>}
-                    </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                    <ul className="space-y-3">
-                        {plan.features.map((feature) => (
-                            <li key={feature} className="flex items-center">
-                                <Check className="h-4 w-4 mr-2 text-primary" />
-                                <span className="text-sm text-muted-foreground">{feature}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </CardContent>
-                <CardContent>
-                     <Button className="w-full" variant={plan.variant as any}>
-                        {plan.cta}
-                    </Button>
-                </CardContent>
-            </Card>
-        ))}
+        {plans.map((plan) => {
+            const isCurrent = plan.name === currentPlan;
+            return (
+              <Card key={plan.name} className={`flex flex-col ${isCurrent ? 'border-primary' : ''}`}>
+                  <CardHeader>
+                      <CardTitle>{plan.name}</CardTitle>
+                      <CardDescription>{plan.description}</CardDescription>
+                      <div className="flex items-baseline pt-4">
+                          <span className="text-3xl font-bold">{plan.price}</span>
+                          {plan.period && <span className="text-sm text-muted-foreground">{plan.period}</span>}
+                      </div>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                      <ul className="space-y-3">
+                          {plan.features.map((feature) => (
+                              <li key={feature} className="flex items-center">
+                                  <Check className="h-4 w-4 mr-2 text-primary" />
+                                  <span className="text-sm text-muted-foreground">{feature}</span>
+                              </li>
+                          ))}
+                      </ul>
+                  </CardContent>
+                  <CardContent>
+                       <Button 
+                          className="w-full" 
+                          variant={isCurrent ? "outline" : "default"}
+                          onClick={() => handlePlanChange(plan.name)}
+                          disabled={isCurrent}
+                        >
+                          {getCtaText(plan.name)}
+                      </Button>
+                  </CardContent>
+              </Card>
+            )
+        })}
       </div>
     </div>
   );
