@@ -1,18 +1,18 @@
 "use client";
 
-import { useActions } from "ai/rsc";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Wand2 } from "lucide-react";
+import { generateIdeaNames } from "@/ai/flows/idea-name-generator";
+import { suggestFeatures } from "@/ai/flows/feature-suggestion";
+import { generateProductDescription } from "@/ai/flows/content-generation";
 
 type AIOutput = string[] | { shortDescription: string; longDescription: string } | null;
 
 export default function CopilotPage() {
-  const { generateIdeaNames, suggestFeatures, generateProductDescription } = useActions();
   const [inputValue, setInputValue] = useState("");
   const [output, setOutput] = useState<AIOutput>(null);
   const [isLoading, setIsLoading] = useState(false);

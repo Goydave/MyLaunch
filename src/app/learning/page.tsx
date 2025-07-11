@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useActions } from "ai/rsc";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Check, Loader2, ShieldCheck } from "lucide-react";
+import { personalizedLearningPath } from "@/ai/flows/personalized-learning";
 
 const formSchema = z.object({
   ideaDescription: z.string().min(10, "Please provide more details about your idea."),
@@ -33,7 +33,6 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function LearningPage() {
-  const { personalizedLearningPath } = useActions();
   const [learningPath, setLearningPath] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,12 +51,16 @@ export default function LearningPage() {
     setError(null);
     setLearningPath(null);
 
-    const result = await personalizedLearningPath(values);
+    try {
+      const result = await personalizedLearningPath(values);
 
-    if (result.learningPath) {
-      setLearningPath(result.learningPath);
-    } else {
-      setError("Failed to generate a learning path. Please try again.");
+      if (result.learningPath) {
+        setLearningPath(result.learningPath);
+      } else {
+        setError("Failed to generate a learning path. Please try again.");
+      }
+    } catch (e) {
+       setError("Failed to generate a learning path. Please try again.");
     }
     setIsLoading(false);
   };
