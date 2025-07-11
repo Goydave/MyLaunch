@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,11 +34,16 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function StudioPage() {
   const { plan } = usePlan();
+  const [isClient, setIsClient] = useState(false);
   const [landingPage, setLandingPage] = useState<LandingPageOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
   const [isDeployed, setIsDeployed] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -77,6 +82,10 @@ export default function StudioPage() {
             description: "Your new landing page is now live.",
         })
     }, 2500);
+  }
+
+  if (!isClient) {
+    return null; // Render nothing on the server and during initial client render
   }
 
   if (plan === "Free") {
