@@ -44,6 +44,7 @@ const navItems = [
   { href: "/studio", icon: Rocket, label: "Studio" },
   { href: "/learning", icon: ShieldCheck, label: "Learning" },
   { href: "/copilot", icon: Lightbulb, label: "AI Copilot" },
+  { href: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
