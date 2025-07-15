@@ -15,7 +15,7 @@ import { suggestFeatures } from './feature-suggestion';
 import { generateProductDescription } from './content-generation';
 import { stripIndents } from 'common-tags';
 
-const MessageSchema = z.object({
+export const MessageSchema = z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string(),
 });
@@ -87,7 +87,8 @@ const chatFlow = ai.defineFlow(
         outputSchema: z.string(),
     },
     async (messages) => {
-        const result = await chatPrompt(messages.map(m => ({...m, role: m.role === 'assistant' ? 'model' : 'user'})));
+        const validMessages = messages.filter(m => m.content);
+        const result = await chatPrompt(validMessages.map(m => ({ ...m, role: m.role === 'assistant' ? 'model' : 'user' })));
         const output = result?.output;
 
         if (!output) {
@@ -115,7 +116,7 @@ const chatFlow = ai.defineFlow(
                 return stripIndents`
                     Here are some ideas for you:
 
-                    ${toolResponse.map((item: string, index: number) => `- ${item}`).join('\n')}
+                    ${toolResponse.map((item: string) => `- ${item}`).join('\n')}
                 `;
             }
 
@@ -123,7 +124,7 @@ const chatFlow = ai.defineFlow(
             return `I have used the ${toolRequest.name} tool and here is the result: ${JSON.stringify(toolResponse, null, 2)}`;
         }
         
-        return output.text;
+        return output.text || "I'm not sure how to respond to that. Could you try rephrasing?";
     }
 );
 
