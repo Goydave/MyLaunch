@@ -1,3 +1,4 @@
+
 // src/ai/flows/personalized-learning.ts
 'use server';
 /**
@@ -12,26 +13,35 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const PersonalizedLearningPathInputSchema = z.object({
-  ideaDescription: z
-    .string()
-    .describe('The user inputted idea description.'),
-  projectGoals: z.string().describe('The project goals of the user.'),
-  currentProgress: z
-    .string()
-    .describe('The current progress of the project.'),
+  learningTopic: z.string().describe('The topic the user wants to learn about.'),
 });
-export type PersonalizedLearningPathInput = z.infer<
-  typeof PersonalizedLearningPathInputSchema
->;
+export type PersonalizedLearningPathInput = z.infer<typeof PersonalizedLearningPathInputSchema>;
+
+const VideoSchema = z.object({
+    title: z.string().describe("The title of the YouTube video."),
+    videoId: z.string().describe("The unique ID of the YouTube video."),
+});
+
+const ResourceSchema = z.object({
+    title: z.string().describe("The title of the resource (e.g., article, tool, documentation)."),
+    url: z.string().url().describe("The full URL to the resource."),
+});
+
+const RoadmapStepSchema = z.object({
+    title: z.string().describe("The title of this step in the learning roadmap."),
+    description: z.string().describe("A detailed description of what to learn in this step and why it's important."),
+    videos: z.array(VideoSchema).max(4).describe("A list of 2-4 recommended YouTube videos for this step."),
+    resources: z.array(ResourceSchema).max(4).describe("A list of 2-4 supplementary resources like articles or tools."),
+});
 
 const PersonalizedLearningPathOutputSchema = z.object({
-  learningPath: z
-    .array(z.string())
-    .describe('An array of recommended micro-lessons and learning paths.'),
+  roadmap: z
+    .array(RoadmapStepSchema)
+    .min(3)
+    .max(7)
+    .describe('An array of steps that form the learning roadmap.'),
 });
-export type PersonalizedLearningPathOutput = z.infer<
-  typeof PersonalizedLearningPathOutputSchema
->;
+export type PersonalizedLearningPathOutput = z.infer<typeof PersonalizedLearningPathOutputSchema>;
 
 export async function personalizedLearningPath(
   input: PersonalizedLearningPathInput
@@ -43,24 +53,17 @@ const prompt = ai.definePrompt({
   name: 'personalizedLearningPathPrompt',
   input: {schema: PersonalizedLearningPathInputSchema},
   output: {schema: PersonalizedLearningPathOutputSchema},
-  prompt: `You are an AI assistant designed to provide personalized learning paths for users working on their projects.
+  prompt: `You are an AI Learning Mentor. Your goal is to create a comprehensive, step-by-step learning roadmap for a user based on their desired learning topic.
 
-  Based on the user's idea description, project goals, and current progress, recommend a list of relevant micro-lessons and learning paths.
-  The learning paths should be tailored to help the user efficiently learn the necessary skills to bring their idea to life.
+  The user wants to learn about: {{{learningTopic}}}
 
-  Idea Description: {{{ideaDescription}}}
-  Project Goals: {{{projectGoals}}}
-  Current Progress: {{{currentProgress}}}
+  Generate a structured learning roadmap with 3 to 7 distinct steps. For each step, provide:
+  1. A clear, actionable title.
+  2. A concise description of the step's objective.
+  3. A list of 2-4 highly-rated, relevant YouTube video tutorials. Provide the real title and the correct YouTube video ID.
+  4. A list of 2-4 high-quality supplementary resources, such as articles, official documentation, or essential tools. Provide the title and a valid URL.
 
-  Here's an example of a good learning path:
-  [
-    "How to find Product-Market Fit",
-    "Build your MVP in 24 hours",
-    "Creating a pitch deck that converts",
-    "Monetizing your product"
-  ]
-
-  Return a JSON array of strings for the best learning path.
+  Your output must be a well-structured JSON object that adheres to the defined schema.
   `,
 });
 
