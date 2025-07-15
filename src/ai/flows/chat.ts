@@ -14,7 +14,7 @@ import { suggestFeaturesTool } from './feature-suggestion';
 import { generateIdeaNamesTool } from './idea-name-generator';
 
 
-export const MessageSchema = z.object({
+const MessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
   content: z.string(),
 });
