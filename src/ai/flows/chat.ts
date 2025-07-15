@@ -123,7 +123,9 @@ const chatFlow = ai.defineFlow(
                 `;
             }
 
-            return `I have used the ${toolRequest.name} tool and here is the result: ${JSON.stringify(toolResponse, null, 2)}`;
+            // Fallback for any other tool response type
+            const toolOutputAsString = typeof toolResponse === 'string' ? toolResponse : JSON.stringify(toolResponse, null, 2);
+            return `I have used the ${toolRequest.name} tool and here is the result: ${toolOutputAsString}`;
         }
         
         return output.text || "I'm not sure how to respond to that. Could you try rephrasing?";
