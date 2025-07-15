@@ -14,7 +14,7 @@ import { suggestFeatures } from './feature-suggestion';
 import { generateProductDescription } from './content-generation';
 import { stripIndents } from 'common-tags';
 
-export const MessageSchema = z.object({
+const MessageSchema = z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string(),
 });
@@ -93,15 +93,15 @@ const chatFlow = ai.defineFlow(
             const toolRequest = output.toolRequests[0];
             const toolResponse = await toolRequest.run();
 
-            if(typeof toolResponse === 'object' && 'shortDescription' in toolResponse) {
+            if(typeof toolResponse === 'object' && toolResponse !== null && 'shortDescription' in toolResponse) {
                  return stripIndents`
                     Here's a description for your project:
 
                     **Short Description:**
-                    ${toolResponse.shortDescription}
+                    ${(toolResponse as any).shortDescription}
 
                     **Detailed Description:**
-                    ${toolResponse.longDescription}
+                    ${(toolResponse as any).longDescription}
                 `;
             }
 
