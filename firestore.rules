@@ -1,3 +1,4 @@
+
 rules_version = '2';
 
 service cloud.firestore {
@@ -7,11 +8,19 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
-
-    // Allow users to create and read their own copilot sessions.
-    // They cannot update or delete them through the client.
+    
+    // Allow users to manage their own copilot sessions
     match /users/{userId}/copilotSessions/{sessionId} {
-      allow read, create: if request.auth != null && request.auth.uid == userId;
+      allow create, read: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /users/{userId}/copilotSessions/{sessionId}/{document=**} {
+       allow read, create: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Allow users to list their own copilot sessions
+     match /users/{userId}/copilotSessions {
+      allow list: if request.auth != null && request.auth.uid == userId;
     }
   }
 }
