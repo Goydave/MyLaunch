@@ -8,3 +8,4 @@ import '@/ai/flows/idea-name-generator.ts';
 import '@/ai/flows/pitch-deck-generator.ts';
 import '@/ai/flows/landing-page-generator.ts';
 import '@/ai/flows/project-image-generator.ts';
+import '@/ai/flows/chat.ts';
