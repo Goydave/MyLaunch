@@ -1,4 +1,3 @@
-
 // src/app/copilot/page.tsx
 "use client";
 
@@ -20,8 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Loader2, Sparkles } from "lucide-react";
 import { chat, type CoFounderOutput } from "@/ai/flows/chat";
-import { usePlan } from "@/hooks/use-plan";
-import { UpgradePro } from "@/components/layout/upgrade-pro";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 const formSchema = z.object({
   businessIdea: z.string().min(20, "Please provide a detailed description of your business idea (at least 20 characters)."),
@@ -32,7 +30,6 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CopilotPage() {
-  const { plan } = usePlan();
   const [response, setResponse] = useState<CoFounderOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +53,7 @@ export default function CopilotPage() {
       setResponse(result);
     } catch (e) {
       setError("Failed to get a response from the AI. Please try again.");
+      console.error(e);
     }
     setIsLoading(false);
   };
@@ -85,7 +83,9 @@ export default function CopilotPage() {
           {Object.entries(response).map(([key, value]) => (
             <AccordionItem value={key} key={key}>
               <AccordionTrigger className="text-md font-semibold capitalize">{key.replace(/([A-Z])/g, ' $1')}</AccordionTrigger>
-              <AccordionContent className="text-sm text-muted-foreground whitespace-pre-wrap">{value}</AccordionContent>
+              <AccordionContent className="text-sm text-muted-foreground whitespace-pre-wrap">
+                <MarkdownRenderer content={value} />
+              </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
@@ -93,10 +93,6 @@ export default function CopilotPage() {
     }
 
     return <p className="text-sm text-muted-foreground">Your AI co-founder's analysis will appear here.</p>;
-  }
-  
-  if (plan === "Free") {
-    return <UpgradePro featureName="AI Business Co-Founder" />;
   }
 
   return (
