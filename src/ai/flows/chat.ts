@@ -119,6 +119,7 @@ const chatFlow = ai.defineFlow(
                 `;
             }
 
+            // Fallback for any other tool response type
             return `I have used the ${toolRequest.name} tool and here is the result: ${JSON.stringify(toolResponse, null, 2)}`;
         }
         
