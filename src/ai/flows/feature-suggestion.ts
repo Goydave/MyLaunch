@@ -1,7 +1,11 @@
-// FeatureSuggestion flow implemented that provides feature suggestions based on the user's project idea.
-
 'use server';
-
+/**
+ * @fileOverview AI tool for suggesting features for a project.
+ * 
+ * - suggestFeaturesTool - A tool that suggests features for an MVP based on a project idea.
+ * - FeatureSuggestionInput - The input type for the tool.
+ * - FeatureSuggestionOutput - The output type for the tool.
+ */
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
@@ -17,10 +21,6 @@ const FeatureSuggestionOutputSchema = z.object({
 });
 export type FeatureSuggestionOutput = z.infer<typeof FeatureSuggestionOutputSchema>;
 
-export async function suggestFeatures(input: FeatureSuggestionInput): Promise<FeatureSuggestionOutput> {
-  return suggestFeaturesFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'featureSuggestionPrompt',
   input: {schema: FeatureSuggestionInputSchema},
@@ -34,14 +34,19 @@ const prompt = ai.definePrompt({
   `,
 });
 
-const suggestFeaturesFlow = ai.defineFlow(
+export const suggestFeaturesTool = ai.defineTool(
   {
-    name: 'suggestFeaturesFlow',
+    name: 'suggestFeaturesTool',
+    description: 'Suggests a list of features for a Minimum Viable Product (MVP) based on a project idea.',
     inputSchema: FeatureSuggestionInputSchema,
     outputSchema: FeatureSuggestionOutputSchema,
   },
-  async input => {
+  async (input) => {
     const {output} = await prompt(input);
     return output!;
   }
 );
+
+export async function suggestFeatures(input: FeatureSuggestionInput): Promise<FeatureSuggestionOutput> {
+  return suggestFeaturesTool(input);
+}

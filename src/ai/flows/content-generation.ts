@@ -1,8 +1,8 @@
 'use server';
 /**
- * @fileOverview AI-powered content generation flow for MyLaunch app.
+ * @fileOverview AI-powered content generation tool for MyLaunch app.
  *
- * - generateProductDescription - A function that generates product descriptions based on a project idea.
+ * - generateProductDescriptionTool - A tool that generates product descriptions based on a project idea.
  * - GenerateProductDescriptionInput - The input type for the generateProductDescription function.
  * - GenerateProductDescriptionOutput - The return type for the generateProductDescription function.
  */
@@ -21,9 +21,6 @@ const GenerateProductDescriptionOutputSchema = z.object({
 });
 export type GenerateProductDescriptionOutput = z.infer<typeof GenerateProductDescriptionOutputSchema>;
 
-export async function generateProductDescription(input: GenerateProductDescriptionInput): Promise<GenerateProductDescriptionOutput> {
-  return generateProductDescriptionFlow(input);
-}
 
 const prompt = ai.definePrompt({
   name: 'generateProductDescriptionPrompt',
@@ -32,16 +29,13 @@ const prompt = ai.definePrompt({
   prompt: `You are a marketing expert specializing in creating compelling product descriptions. Given a project idea, generate a short, catchy description and a detailed description for the product.
 
 Project Idea: {{{projectIdea}}}
-
-Short Description (one sentence):
-
-Detailed Description:
 `,
 });
 
-const generateProductDescriptionFlow = ai.defineFlow(
+export const generateProductDescriptionTool = ai.defineTool(
   {
-    name: 'generateProductDescriptionFlow',
+    name: 'generateProductDescriptionTool',
+    description: 'Generates short and long product descriptions based on a project idea.',
     inputSchema: GenerateProductDescriptionInputSchema,
     outputSchema: GenerateProductDescriptionOutputSchema,
   },
@@ -50,3 +44,7 @@ const generateProductDescriptionFlow = ai.defineFlow(
     return output!;
   }
 );
+
+export async function generateProductDescription(input: GenerateProductDescriptionInput): Promise<GenerateProductDescriptionOutput> {
+  return generateProductDescriptionTool(input);
+}

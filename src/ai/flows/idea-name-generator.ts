@@ -1,11 +1,11 @@
 'use server';
 
 /**
- * @fileOverview A flow for generating creative and catchy names for project ideas.
+ * @fileOverview A tool for generating creative and catchy names for project ideas.
  *
- * - generateIdeaNames - A function that generates idea names.
- * - IdeaNameInput - The input type for the generateIdeaNames function.
- * - IdeaNameOutput - The return type for the generateIdeaNames function.
+ * - generateIdeaNamesTool - A tool that generates idea names.
+ * - IdeaNameInput - The input type for the generateIdeaNames tool.
+ * - IdeaNameOutput - The return type for the generateIdeaNames tool.
  */
 
 import {ai} from '@/ai/genkit';
@@ -27,10 +27,6 @@ const IdeaNameOutputSchema = z.object({
 
 export type IdeaNameOutput = z.infer<typeof IdeaNameOutputSchema>;
 
-export async function generateIdeaNames(input: IdeaNameInput): Promise<IdeaNameOutput> {
-  return ideaNameGeneratorFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'ideaNameGeneratorPrompt',
   input: {schema: IdeaNameInputSchema},
@@ -38,14 +34,19 @@ const prompt = ai.definePrompt({
   prompt: `You are a creative branding expert. Generate 5 catchy and creative names for the following project idea:\n\n{{{ideaDescription}}}`,
 });
 
-const ideaNameGeneratorFlow = ai.defineFlow(
+export const generateIdeaNamesTool = ai.defineTool(
   {
-    name: 'ideaNameGeneratorFlow',
+    name: 'generateIdeaNamesTool',
+    description: 'Generates 5 catchy and creative names for a project idea.',
     inputSchema: IdeaNameInputSchema,
     outputSchema: IdeaNameOutputSchema,
   },
-  async input => {
+  async (input) => {
     const {output} = await prompt(input);
     return output!;
   }
 );
+
+export async function generateIdeaNames(input: IdeaNameInput): Promise<IdeaNameOutput> {
+  return generateIdeaNamesTool(input);
+}
