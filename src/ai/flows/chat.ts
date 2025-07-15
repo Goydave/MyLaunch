@@ -93,13 +93,13 @@ const chatFlow = ai.defineFlow(
         if (!output) {
             return "I'm sorry, I encountered an issue and couldn't generate a response. Please try again.";
         }
-
+        
         if (output.toolRequests.length > 0) {
             // Handle tool requests and format the output
             const toolRequest = output.toolRequests[0];
             const toolResponse = await toolRequest.run();
 
-            if(typeof toolResponse === 'object' && toolResponse !== null && 'shortDescription' in toolResponse) {
+            if (toolRequest.name === 'generateProductDescription' && typeof toolResponse === 'object' && toolResponse !== null && 'shortDescription' in toolResponse) {
                  return stripIndents`
                     Here's a description for your project:
 
@@ -115,7 +115,7 @@ const chatFlow = ai.defineFlow(
                 return stripIndents`
                     Here are some ideas for you:
 
-                    ${toolResponse.map((item: string, index: number) => `${index + 1}. ${item}`).join('\n')}
+                    ${toolResponse.map((item: string, index: number) => `- ${item}`).join('\n')}
                 `;
             }
 
