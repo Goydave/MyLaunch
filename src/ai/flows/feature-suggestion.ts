@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI tool for suggesting features for a project.
@@ -10,7 +11,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const FeatureSuggestionInputSchema = z.object({
-  projectIdea: z.string().describe('The user\u2019s project idea.'),
+  projectIdea: z.string().describe('The user’s project idea.'),
 });
 export type FeatureSuggestionInput = z.infer<typeof FeatureSuggestionInputSchema>;
 
