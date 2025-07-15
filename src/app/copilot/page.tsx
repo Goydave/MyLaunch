@@ -1,3 +1,4 @@
+
 // src/app/copilot/page.tsx
 "use client";
 
@@ -50,8 +51,14 @@ export default function CopilotPage() {
     try {
       const updatedHistory: Message[] = [...messages, userMessage];
       const response = await chat(updatedHistory);
-      const assistantMessage: Message = { role: "assistant", content: response };
-      setMessages((prev) => [...prev, assistantMessage]);
+      
+      if (typeof response === "string" && response.length > 0) {
+        const assistantMessage: Message = { role: "assistant", content: response };
+        setMessages((prev) => [...prev, assistantMessage]);
+      } else {
+         throw new Error("Received an invalid response from the AI.");
+      }
+
     } catch (error) {
       console.error("Chat error:", error);
       const errorMessage: Message = {
