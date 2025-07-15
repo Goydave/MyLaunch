@@ -10,27 +10,32 @@ import {
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, Send, Sparkles, User } from "lucide-react";
-import { chat, type Message } from "@/ai/flows/chat";
-import { useUser } from "@/hooks/use-user";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Loader2, Sparkles } from "lucide-react";
+import { chat } from "@/ai/flows/chat";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const formSchema = z.object({
-  prompt: z.string().min(1, "Message cannot be empty."),
+  prompt: z.string().min(10, "Please describe your idea or question (at least 10 characters)."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CopilotPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [response, setResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useUser();
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -41,127 +46,113 @@ export default function CopilotPage() {
 
   const handleSubmit = async (values: FormValues) => {
     setIsLoading(true);
-    const newMessages: Message[] = [
-      ...messages,
-      { role: "user", content: values.prompt },
-    ];
-    setMessages(newMessages);
-    form.reset();
+    setError(null);
+    setResponse(null);
 
     try {
-      const result = await chat(newMessages);
-      if (typeof result === "string" && result) {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "assistant", content: result },
-        ]);
+      const result = await chat(values.prompt);
+      if (result) {
+        setResponse(result);
       } else {
-         setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "assistant", content: "I'm sorry, I couldn't get a response. Please try again." },
-        ]);
+        setError("Failed to get a response from the AI. Please try again.");
       }
     } catch (e) {
-      console.error(e);
-      setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "assistant", content: "An error occurred. Please try again later." },
-        ]);
+       setError("An error occurred while communicating with the AI. Please try again later.");
+       console.error(e);
     }
     setIsLoading(false);
   };
+  
+  const renderLoadingSkeleton = () => (
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-1/3" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-4/5" />
+      </div>
+    </div>
+  );
+  
+  const renderResponse = () => {
+    if (isLoading) {
+        return renderLoadingSkeleton();
+    }
+    if (error) {
+        return <p className="text-destructive">{error}</p>
+    }
+    if(response) {
+        return <p className="whitespace-pre-wrap">{response}</p>
+    }
+    return (
+        <div className="text-center text-muted-foreground p-8">
+            <Sparkles className="mx-auto h-12 w-12 mb-4" />
+            <p>Your AI-powered co-founder is ready to help. Ask it anything!</p>
+        </div>
+    )
+  }
 
   return (
-    <div className="flex flex-col h-full flex-1">
-      <header className="p-4 border-b">
-         <h1 className="text-lg font-semibold md:text-2xl">AI Co-founder</h1>
-         <p className="text-muted-foreground text-sm">
-           Your partner in brainstorming, validation, and strategy.
-         </p>
-      </header>
+    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
+      <div className="text-center">
+        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">AI Co-founder</h1>
+        <p className="text-muted-foreground text-lg mt-2">
+          Your partner in brainstorming, validation, and strategy.
+        </p>
+      </div>
 
-      <main className="flex-1 overflow-hidden p-4">
-        <ScrollArea className="h-full pr-4">
-          <div className="space-y-6 max-w-4xl mx-auto">
-          {messages.length === 0 && (
-              <div className="text-center text-muted-foreground pt-16">
-                  <Sparkles className="mx-auto h-12 w-12 mb-4" />
-                  <h2 className="text-xl font-semibold">Start the Conversation</h2>
-                  <p className="mt-2">What's on your mind? Ask for startup names, feature ideas, or a product description!</p>
-              </div>
-          )}
-
-          {messages.map((message, index) => (
-            <div key={index} className={`flex items-start gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
-                {message.role === "assistant" && (
-                    <Avatar className="h-9 w-9 border">
-                        <div className="h-full w-full flex items-center justify-center bg-primary text-primary-foreground">
-                            <Sparkles className="h-5 w-5"/>
-                        </div>
-                    </Avatar>
-                )}
-                 <div className={`rounded-lg p-3 max-w-[80%] ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
-                  }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                 </div>
-                 {message.role === "user" && (
-                    <Avatar className="h-9 w-9 border">
-                        <AvatarImage src={user?.avatar ?? undefined} />
-                        <AvatarFallback><User /></AvatarFallback>
-                    </Avatar>
-                )}
-            </div>
-          ))}
-           {isLoading && (
-               <div className="flex items-start gap-4">
-                   <Avatar className="h-9 w-9 border">
-                        <div className="h-full w-full flex items-center justify-center bg-primary text-primary-foreground">
-                            <Sparkles className="h-5 w-5"/>
-                        </div>
-                    </Avatar>
-                    <div className="rounded-lg p-3 bg-muted flex items-center space-x-2">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        <span className="text-sm">Thinking...</span>
-                    </div>
-               </div>
-           )}
-          </div>
-        </ScrollArea>
-      </main>
-
-      <footer className="p-4 border-t">
-        <Card className="max-w-4xl mx-auto">
-            <CardContent className="p-2">
-                <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className="flex items-center gap-2">
-                    <FormField
-                    control={form.control}
-                    name="prompt"
-                    render={({ field }) => (
-                        <FormItem className="flex-grow">
-                        <FormControl>
-                            <Input
-                            placeholder="e.g., 'Suggest some names for a fitness app'"
-                            {...field}
-                            className="h-10 border-none focus-visible:ring-0 focus-visible:ring-offset-0"
-                            autoComplete="off"
-                            />
-                        </FormControl>
-                        <FormMessage className="pl-2" />
-                        </FormItem>
-                    )}
-                    />
-                    <Button type="submit" disabled={isLoading} size="icon">
-                        <Send className="h-5 w-5" />
-                    </Button>
-                </form>
+     <div className="grid gap-6 md:grid-cols-3 max-w-6xl mx-auto w-full">
+        <Card className="md:col-span-1">
+             <CardHeader>
+                <CardTitle>Your Prompt</CardTitle>
+                <CardDescription>
+                    What's on your mind? Ask for startup names, feature ideas, or a product description!
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <Form {...form}>
+                    <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="prompt"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Textarea 
+                                placeholder="e.g., 'Suggest some names for a fitness app that also tracks nutrition.'" 
+                                {...field}
+                                rows={6}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button type="submit" disabled={isLoading} size="lg" className="w-full">
+                        {isLoading ? (
+                          <Loader2 className="animate-spin" />
+                        ) : (
+                          <>
+                            <Sparkles className="mr-2" />
+                            Ask AI
+                          </>
+                        )}
+                      </Button>
+                    </form>
                 </Form>
             </CardContent>
         </Card>
-      </footer>
+        
+        <Card className="md:col-span-2">
+            <CardHeader>
+                <CardTitle>AI Response</CardTitle>
+                <CardDescription>The AI's answer will appear below.</CardDescription>
+            </CardHeader>
+            <CardContent className="min-h-[200px]">
+                {renderResponse()}
+            </CardContent>
+        </Card>
+     </div>
     </div>
   );
 }

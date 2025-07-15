@@ -8,94 +8,48 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import { generateIdeaNamesTool, type IdeaNameOutput } from './idea-name-generator';
-import { suggestFeaturesTool, type FeatureSuggestionOutput } from './feature-suggestion';
-import { generateProductDescriptionTool, type GenerateProductDescriptionOutput } from './content-generation';
-import { stripIndents } from 'common-tags';
+import {stripIndents} from 'common-tags';
 
+export type Message = {
+  role: 'user' | 'assistant';
+  content: string;
+};
 
-const MessageSchema = z.object({
-  role: z.enum(['user', 'assistant']),
-  content: z.string(),
-});
-export type Message = z.infer<typeof MessageSchema>;
-
-const ChatHistorySchema = z.array(MessageSchema);
-
-const chatPrompt = ai.definePrompt(
-  {
-    name: 'copilotPrompt',
-    tools: [generateIdeaNamesTool, suggestFeaturesTool, generateProductDescriptionTool],
-    system: stripIndents`
-      You are an AI co-founder, a helpful and encouraging expert in startups, product development, and marketing.
-      Your goal is to help users develop their ideas.
-      - If the user asks for names for their idea, use the generateIdeaNamesTool. The user's prompt will be used as the idea description.
-      - If the user asks for feature suggestions, use the suggestFeaturesTool. The user's prompt will be used as the project idea.
-      - If the user asks for a product description, use the generateProductDescriptionTool. The user's prompt will be used as the project idea.
-      - For anything else, provide a helpful and concise response.
-      - You must call at most one tool per turn.
-      - When presenting tool results like names or features, format them as a bulleted list.
-    `,
+const chatPrompt = ai.definePrompt({
+  name: 'copilotPrompt',
+  system: stripIndents`
+    You are an AI co-founder, a helpful and encouraging expert in startups, product development, and marketing.
+    Your goal is to help users develop their ideas.
+    Provide a helpful and concise response to the user's prompt.
+  `,
+  input: {
+    schema: z.string(),
   },
-);
+  output: {
+    schema: z.string(),
+  },
+  prompt: '{{input}}',
+});
 
 const chatFlow = ai.defineFlow(
   {
     name: 'chatFlow',
-    inputSchema: ChatHistorySchema,
+    inputSchema: z.string(),
     outputSchema: z.string(),
   },
-  async (messages) => {
-    // Filter out any potentially corrupt messages without content
-    const validMessages = messages.filter(m => m.content);
-
-    if (validMessages.length === 0) {
-      return "Hello! What idea are you working on today?";
-    }
-
-    // Map to the role 'model' for the assistant's messages
-    const result = await chatPrompt(validMessages.map(m => ({ ...m, role: m.role === 'assistant' ? 'model' : 'user' })));
+  async (prompt) => {
+    const result = await chatPrompt(prompt);
     const output = result.output;
-    
+
     if (!output) {
       return "I'm not sure how to respond to that. Could you please rephrase?";
     }
-    
-    // If a tool was used, handle its output and format it into a string
-    if (output.toolRequest) {
-      const toolResponse = await output.toolRequest.next();
 
-      if (!toolResponse || !toolResponse.result) {
-          return "There was an issue using my internal tools. Please try again.";
-      }
-
-      if (output.toolRequest.name === 'generateIdeaNamesTool') {
-          const ideaNames = toolResponse.result as IdeaNameOutput;
-          return `Here are some name ideas for you:\n\n- ${ideaNames.ideaNames.join('\n- ')}`;
-      }
-      if (output.toolRequest.name === 'suggestFeaturesTool') {
-          const features = toolResponse.result as FeatureSuggestionOutput;
-          return `Here are some feature suggestions for your MVP:\n\n- ${features.suggestedFeatures.join('\n- ')}`;
-      }
-      if (output.toolRequest.name === 'generateProductDescriptionTool') {
-          const description = toolResponse.result as GenerateProductDescriptionOutput;
-          return `Here are some product descriptions:\n\n**Short:**\n${description.shortDescription}\n\n**Long:**\n${description.longDescription}`;
-      }
-      
-      return "I've completed the task. What should we do next?";
-    }
-    
-    // If it's a simple text response, just return it
-    if (output.text) {
-      return output.text;
-    }
-
-    return "I'm sorry, I encountered an unexpected error. Please try again.";
+    return output;
   }
 );
 
-
-export async function chat(messages: Message[]): Promise<string> {
-    const response = await chatFlow(messages);
-    return response;
+export async function chat(prompt: string): Promise<string> {
+  const response = await chatFlow(prompt);
+  return response;
 }
