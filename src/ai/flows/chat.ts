@@ -1,71 +1,63 @@
-
+// src/ai/flows/chat.ts
 'use server';
 /**
- * @fileOverview An AI flow for the AI Co-founder, based on the pitch deck generator.
+ * @fileOverview An AI flow for the AI Business Co-founder.
  *
- * - chat - A function that handles the content generation.
- * - ChatInput - The input type for the chat function.
- * - ChatOutput - The return type for the chat function.
+ * - chat - A function that provides a business analysis.
+ * - CoFounderInput - The input type for the chat function.
+ * - CoFounderOutput - The return type for the chat function.
  */
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
-const ChatInputSchema = z.object({
-  projectIdea: z.string().describe('A detailed description of the project idea.'),
+const CoFounderInputSchema = z.object({
+  businessIdea: z.string().describe('A detailed description of the business idea.'),
   targetAudience: z.string().describe('A description of the target audience for the product.'),
+  revenueModel: z.string().describe('How the business plans to make money (e.g., subscriptions, ads, sales).'),
 });
-export type ChatInput = z.infer<typeof ChatInputSchema>;
+export type CoFounderInput = z.infer<typeof CoFounderInputSchema>;
 
-const ChatOutputSchema = z.object({
-  problem: z.string().describe("A concise description of the problem the project solves. Frame it as a story or a relatable situation."),
-  solution: z.string().describe("A clear explanation of how the project solves the problem. Highlight the key features and benefits."),
-  marketSize: z.string().describe("An overview of the market size and opportunity (TAM, SAM, SOM). Provide estimated numbers if possible."),
-  product: z.string().describe("A detailed look at the product, how it works, and its unique selling propositions (USPs)."),
-  businessModel: z.string().describe("How the business will make money. (e.g., Subscription, Freemium, Transaction Fees, etc.)."),
-  traction: z.string().describe("Any progress made so far (e.g., sign-ups, revenue, partnerships, user feedback). If none, describe the plan to get traction."),
-  team: z.string().describe("A brief overview of the founding team, highlighting relevant experience. If a solo founder, explain why they are the right person."),
-  financials: z.string().describe("Key financial projections for the next 3-5 years (e.g., revenue, users, key metrics). Keep it high-level."),
-  theAsk: z.string().describe("What the company is asking for (e.g., '$500,000 in seed funding') and how the funds will be used (e.g., 'to hire 2 engineers and for marketing')."),
+const CoFounderOutputSchema = z.object({
+  executiveSummary: z.string().describe("A high-level, concise summary of the business idea and its potential. This should be a compelling elevator pitch."),
+  strengthAnalysis: z.string().describe("An analysis of the key strengths of the business idea. What makes it strong?"),
+  weaknessAnalysis: z.string().describe("A candid analysis of potential weaknesses, risks, or challenges the business might face."),
+  nextSteps: z.string().describe("A list of 3-5 actionable next steps the founder should take to move the business idea forward."),
 });
-export type ChatOutput = z.infer<typeof ChatOutputSchema>;
+export type CoFounderOutput = z.infer<typeof CoFounderOutputSchema>;
 
-export async function chat(input: ChatInput): Promise<ChatOutput> {
-  return chatFlow(input);
+export async function chat(input: CoFounderInput): Promise<CoFounderOutput> {
+  return coFounderFlow(input);
 }
 
 const prompt = ai.definePrompt({
   name: 'coFounderPrompt',
-  input: {schema: ChatInputSchema},
-  output: {schema: ChatOutputSchema},
-  prompt: `You are an expert startup advisor and AI co-founder. 
+  input: {schema: CoFounderInputSchema},
+  output: {schema: CoFounderOutputSchema},
+  prompt: `You are an expert AI Business Co-founder and startup strategist. 
   
-  Your task is to provide a comprehensive analysis of the user's idea, structured like a pitch deck.
-  For each section, create concise, powerful, and persuasive text that would impress a venture capitalist.
+  Your task is to provide a sharp, insightful, and honest analysis of the user's business idea.
+  Your feedback should be encouraging but also realistic, like a true co-founder would be.
 
-  Project Idea: {{{projectIdea}}}
+  Business Idea: {{{businessIdea}}}
   Target Audience: {{{targetAudience}}}
+  Revenue Model: {{{revenueModel}}}
 
-  Generate content for the following sections:
-  - Problem: What is the painful problem you're solving?
-  - Solution: How do you solve it in a unique way?
-  - Market Size: How big is the opportunity?
-  - Product: How does your product work? What are the core features?
-  - Business Model: How will you make money?
-  - Traction: What progress have you made? (If none, what's the plan?)
-  - Team: Why is this the right team to build this?
-  - Financials: What are your high-level financial projections?
-  - The Ask: What are you asking for and what will you use it for?
+  Generate a response with the following sections:
+  - Executive Summary: A powerful elevator pitch for the idea.
+  - Strength Analysis: What are the strongest points? Why will this win?
+  - Weakness Analysis: What are the biggest risks and challenges? Be honest.
+  - Next Steps: What are the immediate, actionable next steps?
   
-  Be specific and use strong, confident language. Avoid jargon.
+  Provide clear, concise, and valuable advice.
   `,
 });
 
-const chatFlow = ai.defineFlow(
+const coFounderFlow = ai.defineFlow(
   {
     name: 'coFounderFlow',
-    inputSchema: ChatInputSchema,
-    outputSchema: ChatOutputSchema,
+    inputSchema: CoFounderInputSchema,
+    outputSchema: CoFounderOutputSchema,
   },
   async input => {
     const {output} = await prompt(input);
