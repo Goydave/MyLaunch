@@ -88,6 +88,10 @@ const chatFlow = ai.defineFlow(
     async (messages) => {
         const { output } = await chatPrompt(messages.map(m => ({...m, role: m.role === 'assistant' ? 'model' : 'user'})));
 
+        if (!output) {
+            return "I'm sorry, I encountered an issue and couldn't generate a response. Please try again.";
+        }
+
         if (output.toolRequests.length > 0) {
             // Handle tool requests and format the output
             const toolRequest = output.toolRequests[0];
