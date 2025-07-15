@@ -17,18 +17,19 @@ export type Message = {
 
 const chatPrompt = ai.definePrompt({
   name: 'copilotPrompt',
-  system: stripIndents`
-    You are an AI co-founder, a helpful and encouraging expert in startups, product development, and marketing.
-    Your goal is to help users develop their ideas.
-    Provide a helpful and concise response to the user's prompt.
-  `,
   input: {
     schema: z.string(),
   },
   output: {
     schema: z.string(),
   },
-  prompt: '{{input}}',
+  prompt: stripIndents`
+    You are an AI co-founder, a helpful and encouraging expert in startups, product development, and marketing.
+    Your goal is to help users develop their ideas.
+    Provide a helpful and concise response to the user's prompt.
+
+    User prompt: {{input}}
+  `,
 });
 
 const chatFlow = ai.defineFlow(
