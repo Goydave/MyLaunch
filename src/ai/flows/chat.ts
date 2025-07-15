@@ -11,9 +11,8 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import { saveCopilotSession } from '@/services/firestore';
-import { auth } from '@/lib/firebase';
-import { getAuth } from 'firebase-admin/auth';
-import { adminApp } from '@/lib/firebase-admin';
+import { getAuth } from "firebase/auth";
+import { auth as clientAuth } from '@/lib/firebase';
 
 const CoFounderInputSchema = z.object({
   businessIdea: z.string().describe('A detailed description of the business idea.'),
