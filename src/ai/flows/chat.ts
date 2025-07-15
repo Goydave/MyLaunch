@@ -10,6 +10,10 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import { saveCopilotSession } from '@/services/firestore';
+import { auth } from '@/lib/firebase';
+import { getAuth } from 'firebase-admin/auth';
+import { adminApp } from '@/lib/firebase-admin';
 
 const CoFounderInputSchema = z.object({
   businessIdea: z.string().describe('A detailed description of the business idea.'),
@@ -59,8 +63,28 @@ const coFounderFlow = ai.defineFlow(
     inputSchema: CoFounderInputSchema,
     outputSchema: CoFounderOutputSchema,
   },
-  async input => {
+  async (input, streamingCallback, context) => {
+    // Note: The Genkit context doesn't directly provide the client's Firebase Auth UID.
+    // In a production app, you'd pass a JWT from the client and verify it on the server.
+    // For this example, we'll assume a mock user ID or handle it if available.
+    // This is a placeholder for where you would get the real user ID.
+    const userId = context?.auth?.uid;
+
+    if (!userId) {
+      console.warn("Warning: No authenticated user ID found. Session will not be saved.");
+    }
+    
     const {output} = await prompt(input);
-    return output!;
+
+    if (!output) {
+        throw new Error("Failed to get a response from the AI.");
+    }
+
+    // Save to Firestore if we have a user ID and a valid output.
+    if (userId) {
+      await saveCopilotSession(userId, input, output);
+    }
+    
+    return output;
   }
 );

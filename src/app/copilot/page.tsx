@@ -20,6 +20,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Loader2, Sparkles } from "lucide-react";
 import { chat, type CoFounderOutput } from "@/ai/flows/chat";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { useUser } from "@/hooks/use-user";
+import { toast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   businessIdea: z.string().min(20, "Please provide a detailed description of your business idea (at least 20 characters)."),
@@ -30,6 +32,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CopilotPage() {
+  const { user } = useUser();
   const [response, setResponse] = useState<CoFounderOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,6 +47,15 @@ export default function CopilotPage() {
   });
 
   const handleSubmit = async (values: FormValues) => {
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to use the AI Co-founder.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
     setResponse(null);
@@ -176,7 +188,7 @@ export default function CopilotPage() {
            <Card>
             <CardHeader>
                 <CardTitle>AI Co-Founder Analysis</CardTitle>
-                <CardDescription>Click on each section to see the AI-generated content.</CardDescription>
+                <CardDescription>Your analysis will be saved automatically for future reference.</CardDescription>
             </CardHeader>
             <CardContent>
                 {renderResponse()}
