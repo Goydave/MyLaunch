@@ -45,7 +45,7 @@ const navItems = [
   { href: "/pitch-deck", icon: Presentation, label: "Pitch Deck" },
   { href: "/studio", icon: Rocket, label: "Studio" },
   { href: "/learning", icon: ShieldCheck, label: "Learning" },
-  { href: "/copilot", icon: Lightbulb, label: "AI Copilot" },
+  { href: "/copilot", icon: Lightbulb, label: "Gemini Assistant" },
   { href: "/billing", icon: CreditCard, label: "Billing" },
   { href: "/settings", icon: Settings, label: "Settings" },
 ];
