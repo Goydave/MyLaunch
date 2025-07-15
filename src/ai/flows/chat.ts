@@ -1,3 +1,4 @@
+
 // src/ai/flows/chat.ts
 'use server';
 /**
@@ -86,7 +87,8 @@ const chatFlow = ai.defineFlow(
         outputSchema: z.string(),
     },
     async (messages) => {
-        const { output } = await chatPrompt(messages.map(m => ({...m, role: m.role === 'assistant' ? 'model' : 'user'})));
+        const result = await chatPrompt(messages.map(m => ({...m, role: m.role === 'assistant' ? 'model' : 'user'})));
+        const output = result?.output;
 
         if (!output) {
             return "I'm sorry, I encountered an issue and couldn't generate a response. Please try again.";
