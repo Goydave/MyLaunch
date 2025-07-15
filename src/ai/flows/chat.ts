@@ -99,35 +99,41 @@ const chatFlow = ai.defineFlow(
             return "I'm sorry, I encountered an issue and couldn't generate a response. Please try again.";
         }
         
+        // Handle tool requests and format their output into a single string.
         if (output.toolRequests.length > 0) {
-            const toolRequest = output.toolRequests[0];
-            const toolResponse = await toolRequest.run();
+            const toolResponses = await Promise.all(output.toolRequests.map(async (toolRequest) => {
+                const toolResponse = await toolRequest.run();
 
-            if (toolRequest.name === 'generateProductDescription' && typeof toolResponse === 'object' && toolResponse !== null && 'shortDescription' in toolResponse) {
-                 return stripIndents`
-                    Here's a description for your project:
+                if (toolRequest.name === 'generateProductDescription' && typeof toolResponse === 'object' && toolResponse !== null && 'shortDescription' in toolResponse) {
+                     return stripIndents`
+                        Here's a description for your project:
 
-                    **Short Description:**
-                    ${(toolResponse as any).shortDescription}
+                        **Short Description:**
+                        ${(toolResponse as any).shortDescription}
 
-                    **Detailed Description:**
-                    ${(toolResponse as any).longDescription}
-                `;
-            }
+                        **Detailed Description:**
+                        ${(toolResponse as any).longDescription}
+                    `;
+                }
 
-            if(Array.isArray(toolResponse)) {
-                return stripIndents`
-                    Here are some ideas for you:
+                if(Array.isArray(toolResponse)) {
+                    return stripIndents`
+                        Here are some ideas for you:
 
-                    ${toolResponse.map((item: string) => `- ${item}`).join('\n')}
-                `;
-            }
-
-            // Fallback for any other tool response type
-            const toolOutputAsString = typeof toolResponse === 'string' ? toolResponse : JSON.stringify(toolResponse, null, 2);
-            return `I have used the ${toolRequest.name} tool and here is the result: ${toolOutputAsString}`;
+                        ${toolResponse.map((item: string) => `- ${item}`).join('\n')}
+                    `;
+                }
+                
+                // Fallback for any other tool response type
+                const toolOutputAsString = typeof toolResponse === 'string' ? toolResponse : JSON.stringify(toolResponse, null, 2);
+                return `I have used the ${toolRequest.name} tool and here is the result: ${toolOutputAsString}`;
+            }));
+            
+            // Join all formatted tool responses into a single string.
+            return toolResponses.join('\n\n');
         }
         
+        // If there are no tool requests, return the direct text response.
         return output.text || "I'm not sure how to respond to that. Could you try rephrasing?";
     }
 );
