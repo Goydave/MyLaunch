@@ -16,7 +16,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { auth } from "@/lib/firebase";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from "firebase/auth";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -48,11 +48,19 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       router.push("/dashboard");
     } catch (error: any) {
-      toast({
-        title: "Login Failed",
-        description: error.message,
-        variant: "destructive",
-      });
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+         toast({
+            title: "Login Failed",
+            description: "Invalid credentials. Please check your email and password.",
+            variant: "destructive",
+        });
+      } else {
+        toast({
+            title: "Login Failed",
+            description: error.message,
+            variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +80,32 @@ export default function LoginPage() {
       });
     } finally {
       setIsGoogleLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    const email = form.getValues("email");
+    if (!email) {
+      toast({
+        title: "Email required",
+        description: "Please enter your email address to reset your password.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Check your inbox for a link to reset your password.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Password Reset Failed",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -103,9 +137,9 @@ export default function LoginPage() {
             <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
-                <Link href="#" className="ml-auto inline-block text-sm underline">
+                <Button variant="link" type="button" onClick={handlePasswordReset} className="ml-auto inline-block text-sm underline p-0 h-auto">
                   Forgot your password?
-                </Link>
+                </Button>
               </div>
               <Input id="password" type="password" required {...form.register("password")}/>
                {form.formState.errors.password && (
@@ -116,7 +150,7 @@ export default function LoginPage() {
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Login
             </Button>
-            <Button variant="outline" className="w-full" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
+            <Button variant="outline" type="button" className="w-full" onClick={handleGoogleLogin} disabled={isGoogleLoading}>
               {isGoogleLoading ? (
                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
