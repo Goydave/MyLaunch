@@ -8,8 +8,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {generateIdeaNamesTool, type IdeaNameOutput} from './idea-name-generator';
-import {suggestFeaturesTool, type FeatureSuggestionOutput} from './feature-suggestion';
+import { generateIdeaNamesTool, type IdeaNameOutput } from './idea-name-generator';
+import { suggestFeaturesTool, type FeatureSuggestionOutput } from './feature-suggestion';
 import { generateProductDescriptionTool, type GenerateProductDescriptionOutput } from './content-generation';
 import { stripIndents } from 'common-tags';
 
