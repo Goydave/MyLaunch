@@ -9,3 +9,4 @@ import '@/ai/flows/pitch-deck-generator.ts';
 import '@/ai/flows/landing-page-generator.ts';
 import '@/ai/flows/project-image-generator.ts';
 import '@/ai/flows/chat.ts';
+import '@/ai/flows/business-idea-generator.ts';
