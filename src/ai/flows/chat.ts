@@ -10,10 +10,14 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import {stripIndents} from 'common-tags';
 
+const ChatInputSchema = z.object({
+    prompt: z.string(),
+});
+
 const chatPrompt = ai.definePrompt(
   {
     name: 'simpleCopilotPrompt',
-    input: { schema: z.string() },
+    input: { schema: ChatInputSchema },
     output: { schema: z.string() },
     prompt: stripIndents`
       You are an AI co-founder, a helpful and encouraging expert in startups, product development, and marketing.
@@ -22,7 +26,7 @@ const chatPrompt = ai.definePrompt(
 
       PROMPT:
       ---
-      {{input}}
+      {{{prompt}}}
       ---
     `,
   },
@@ -31,11 +35,11 @@ const chatPrompt = ai.definePrompt(
 const chatFlow = ai.defineFlow(
   {
     name: 'simpleChatFlow',
-    inputSchema: z.string(),
+    inputSchema: ChatInputSchema,
     outputSchema: z.string(),
   },
-  async (prompt) => {
-    const result = await chatPrompt(prompt);
+  async (input) => {
+    const result = await chatPrompt(input);
     const output = result.output;
     
     if (!output) {
@@ -47,6 +51,6 @@ const chatFlow = ai.defineFlow(
 );
 
 export async function chat(prompt: string): Promise<string> {
-    const response = await chatFlow(prompt);
+    const response = await chatFlow({ prompt });
     return response;
 }

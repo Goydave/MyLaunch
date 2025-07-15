@@ -25,7 +25,6 @@ import {
 } from "@/components/ui/card";
 import { Loader2, Sparkles } from "lucide-react";
 import { chat } from "@/ai/flows/chat";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const formSchema = z.object({
   prompt: z.string().min(10, "Please enter a prompt with at least 10 characters."),
@@ -85,9 +84,7 @@ export default function CopilotPage() {
                 <CardTitle>AI Response</CardTitle>
             </CardHeader>
             <CardContent>
-                <ScrollArea className="h-full max-h-[40vh]">
-                    <p className="whitespace-pre-wrap text-sm text-muted-foreground">{response}</p>
-                </ScrollArea>
+              <p className="whitespace-pre-wrap text-sm text-muted-foreground">{response}</p>
             </CardContent>
         </Card>
       )
@@ -102,14 +99,14 @@ export default function CopilotPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">AI Co-founder</h1>
-        <p className="text-muted-foreground text-lg mt-2">
+       <div>
+        <h1 className="text-lg font-semibold md:text-2xl">AI Co-founder</h1>
+        <p className="text-muted-foreground text-sm">
           Your partner in brainstorming, validation, and strategy.
         </p>
       </div>
 
-     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto w-full">
+     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card className="lg:col-span-1">
             <CardHeader>
                 <CardTitle>Ask for Advice</CardTitle>
