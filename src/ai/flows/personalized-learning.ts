@@ -24,7 +24,7 @@ const VideoSchema = z.object({
 
 const ResourceSchema = z.object({
     title: z.string().describe("The title of the resource (e.g., article, tool, documentation)."),
-    url: z.string().url().describe("The full URL to the resource."),
+    url: z.string().describe("The full URL to the resource."),
 });
 
 const RoadmapStepSchema = z.object({
