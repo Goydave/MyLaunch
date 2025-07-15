@@ -53,17 +53,17 @@ const prompt = ai.definePrompt({
   name: 'personalizedLearningPathPrompt',
   input: {schema: PersonalizedLearningPathInputSchema},
   output: {schema: PersonalizedLearningPathOutputSchema},
-  prompt: `You are an AI Learning Mentor. Your goal is to create a comprehensive, step-by-step learning roadmap for a user based on their desired learning topic.
+  prompt: `You are an AI Learning Mentor. Your primary goal is to create a comprehensive, factual, and high-quality step-by-step learning roadmap.
 
   The user wants to learn about: {{{learningTopic}}}
 
-  Generate a structured learning roadmap with 3 to 7 distinct steps. For each step, provide:
+  Generate a structured learning roadmap with 3 to 7 distinct steps. For each step, you MUST provide:
   1. A clear, actionable title.
   2. A concise description of the step's objective.
-  3. A list of 2-4 highly-rated, relevant YouTube video tutorials. Provide the real title and the correct YouTube video ID.
-  4. A list of 2-4 high-quality supplementary resources, such as articles, official documentation, or essential tools. Provide the title and a valid URL.
+  3. A list of 2-4 highly-rated, relevant YouTube video tutorials. It is CRITICAL that you provide the real title and the correct, verifiable YouTube video ID. Do not make up video IDs.
+  4. A list of 2-4 high-quality supplementary resources, such as articles, official documentation, or essential tools. It is CRITICAL that you provide the real title and a valid, working URL.
 
-  Your output must be a well-structured JSON object that adheres to the defined schema.
+  Your output must be a well-structured JSON object that adheres to the defined schema. The accuracy and validity of the links and IDs are of the utmost importance.
   `,
 });
 
