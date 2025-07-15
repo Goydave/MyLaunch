@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { AppShell } from '@/components/layout/app-shell';
@@ -5,6 +6,8 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/hooks/use-theme';
 import { PlanProvider } from '@/hooks/use-plan';
 import { UserProvider } from '@/hooks/use-user';
+import { usePathname } from 'next/navigation';
+import RootLayoutClient from './layout-client';
 
 export const metadata: Metadata = {
   title: 'MyLaunch MVP',
@@ -27,10 +30,9 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="light">
           <UserProvider>
             <PlanProvider>
-              <AppShell>
+              <RootLayoutClient>
                 {children}
-              </AppShell>
-              <Toaster />
+              </RootLayoutClient>
             </PlanProvider>
           </UserProvider>
         </ThemeProvider>
@@ -38,3 +40,4 @@ export default function RootLayout({
     </html>
   );
 }
+
