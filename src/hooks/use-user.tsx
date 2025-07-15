@@ -2,61 +2,57 @@
 "use client";
 
 import * as React from "react";
+import { auth } from "@/lib/firebase";
+import type { User as FirebaseUser } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
+import { usePathname, useRouter } from "next/navigation";
 
 export type User = {
-  name: string;
-  email: string;
-  avatar: string;
+  uid: string;
+  name: string | null;
+  email: string | null;
+  avatar: string | null;
 };
 
 type UserProviderState = {
-  user: User;
-  setUser: (user: User) => void;
+  user: User | null;
+  loading: boolean;
 };
 
 const initialState: UserProviderState = {
-  user: {
-    name: "David Paulino",
-    email: "david.paulino@example.com",
-    avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d",
-  },
-  setUser: () => null,
+  user: null,
+  loading: true,
 };
 
 const UserProviderContext = React.createContext<UserProviderState>(initialState);
 
 export function UserProvider({
   children,
-  storageKey = "mylaunch-user",
 }: {
   children: React.ReactNode;
-  storageKey?: string;
 }) {
-  const [user, setUser] = React.useState<User>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const item = localStorage.getItem(storageKey);
-        return item ? JSON.parse(item) : initialState.user;
-      } catch (error) {
-        console.error("Error reading user from localStorage", error);
-        return initialState.user;
-      }
-    }
-    return initialState.user;
-  });
+  const [state, setState] = React.useState<UserProviderState>(initialState);
 
-  const value = {
-    user,
-    setUser: (user: User) => {
-      if (typeof window !== "undefined") {
-        localStorage.setItem(storageKey, JSON.stringify(user));
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+      if (firebaseUser) {
+        const formattedUser: User = {
+          uid: firebaseUser.uid,
+          name: firebaseUser.displayName,
+          email: firebaseUser.email,
+          avatar: firebaseUser.photoURL,
+        };
+        setState({ user: formattedUser, loading: false });
+      } else {
+        setState({ user: null, loading: false });
       }
-      setUser(user);
-    },
-  };
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   return (
-    <UserProviderContext.Provider value={value}>
+    <UserProviderContext.Provider value={state}>
       {children}
     </UserProviderContext.Provider>
   );

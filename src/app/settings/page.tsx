@@ -34,6 +34,9 @@ import {
 import { useUser } from "@/hooks/use-user"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Camera } from "lucide-react"
+import { auth } from "@/lib/firebase"
+import { signOut, updateProfile, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth"
+import { useRouter } from "next/navigation"
 
 const profileFormSchema = z.object({
   name: z
@@ -62,13 +65,13 @@ const appearanceFormSchema = z.object({
 type AppearanceFormValues = z.infer<typeof appearanceFormSchema>
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { user, setUser } = useUser();
+  const { user, loading } = useUser();
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: { name: user.name, email: user.email },
     mode: "onChange",
   })
 
@@ -81,29 +84,53 @@ export default function SettingsPage() {
   }, []);
 
   useEffect(() => {
-    if (isMounted) {
+    if (isMounted && user) {
       appearanceForm.setValue("theme", theme);
-      profileForm.reset({ name: user.name, email: user.email });
+      profileForm.reset({ name: user.name || '', email: user.email || '' });
     }
   }, [theme, user, isMounted, appearanceForm, profileForm]);
 
-  function onProfileSubmit(data: ProfileFormValues) {
-    setUser({ ...user, name: data.name, email: data.email });
-    toast({
-      title: "Profile updated!",
-      description: "Your new profile information has been saved.",
-    })
+  async function onProfileSubmit(data: ProfileFormValues) {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    try {
+        await updateProfile(currentUser, { displayName: data.name });
+        // Updating email requires re-authentication, so we'll skip it for now
+        // to keep this example simpler.
+        toast({
+            title: "Profile updated!",
+            description: "Your new profile information has been saved.",
+        });
+    } catch(error: any) {
+        toast({
+            title: "Error updating profile",
+            description: error.message,
+            variant: "destructive"
+        })
+    }
   }
   
-  function handleAvatarChange() {
-    // In a real app, this would open a file picker.
+  async function handleAvatarChange() {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+    
+    // In a real app, this would open a file picker and upload to storage.
     // Here, we'll just cycle through a few placeholder images.
     const newAvatarUrl = `https://i.pravatar.cc/150?u=${Date.now()}`;
-    setUser({ ...user, avatar: newAvatarUrl });
-    toast({
-        title: "Avatar updated!",
-        description: "Your new profile picture has been saved.",
-    })
+    try {
+        await updateProfile(currentUser, { photoURL: newAvatarUrl });
+        toast({
+            title: "Avatar updated!",
+            description: "Your new profile picture has been saved.",
+        });
+    } catch(error: any) {
+         toast({
+            title: "Error updating avatar",
+            description: error.message,
+            variant: "destructive"
+        })
+    }
   }
 
   function onAppearanceSubmit(data: AppearanceFormValues) {
@@ -114,23 +141,50 @@ export default function SettingsPage() {
     })
   }
 
-  function handleLogout() {
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
+  async function handleLogout() {
+     try {
+      await signOut(auth);
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+      router.push('/');
+    } catch (error: any) {
+      toast({
+        title: "Logout Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   }
 
-  function handleDeleteAccount() {
-    toast({
-        title: "Account Deleted",
-        description: "Your account has been permanently deleted.",
-        variant: "destructive"
-    });
+  async function handleDeleteAccount() {
+    const currentUser = auth.currentUser;
+    if (!currentUser) return;
+
+    // NOTE: Deleting a user is a sensitive operation that requires recent
+    // authentication. In a real app, you would prompt the user to re-enter
+    // their password before proceeding.
+    try {
+        await deleteUser(currentUser);
+        toast({
+            title: "Account Deleted",
+            description: "Your account has been permanently deleted.",
+            variant: "destructive"
+        });
+        router.push('/');
+    } catch(error: any) {
+        console.error("Account deletion error:", error);
+        toast({
+            title: "Error deleting account",
+            description: "This is a sensitive operation and requires recent login. Please log out and log back in to delete your account.",
+            variant: "destructive"
+        })
+    }
   }
   
-  if (!isMounted) {
-    return null;
+  if (!isMounted || loading || !user) {
+    return null; // Or a loading skeleton
   }
 
   return (
@@ -157,8 +211,8 @@ export default function SettingsPage() {
                            <div className="flex items-center gap-4">
                               <div className="relative">
                                 <Avatar className="h-20 w-20">
-                                  <AvatarImage src={user.avatar} alt="User avatar" />
-                                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                                  <AvatarImage src={user.avatar ?? undefined} alt="User avatar" />
+                                  <AvatarFallback>{user.name ? user.name.charAt(0) : 'U'}</AvatarFallback>
                                 </Avatar>
                                 <Button 
                                   type="button"
@@ -197,10 +251,10 @@ export default function SettingsPage() {
                               <FormItem>
                               <FormLabel>Email</FormLabel>
                               <FormControl>
-                                  <Input placeholder="Your email" {...field} className="max-w-xs" />
+                                  <Input placeholder="Your email" {...field} className="max-w-xs" disabled />
                               </FormControl>
                               <FormDescription>
-                                  Your email address is used for account-related notifications.
+                                  Your email address cannot be changed.
                               </FormDescription>
                               <FormMessage />
                               </FormItem>
