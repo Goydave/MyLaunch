@@ -1,4 +1,3 @@
-
 // src/app/copilot/page.tsx
 "use client";
 
@@ -15,176 +14,154 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Loader2, Sparkles, Youtube, BookOpen } from "lucide-react";
-import { personalizedLearningPath, type PersonalizedLearningPathOutput } from "@/ai/flows/personalized-learning";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, Send, Sparkles, User } from "lucide-react";
+import { chat, type Message } from "@/ai/flows/chat";
+import { useUser } from "@/hooks/use-user";
 
 const formSchema = z.object({
-  learningTopic: z.string().min(5, "Please describe what you want to learn."),
+  prompt: z.string().min(1, "Message cannot be empty."),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CopilotPage() {
-  const [roadmap, setRoadmap] = useState<PersonalizedLearningPathOutput | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      learningTopic: "",
+      prompt: "",
     },
   });
 
   const handleSubmit = async (values: FormValues) => {
     setIsLoading(true);
-    setError(null);
-    setRoadmap(null);
+    const newMessages: Message[] = [
+      ...messages,
+      { role: "user", content: values.prompt },
+    ];
+    setMessages(newMessages);
+    form.reset();
 
     try {
-      const result = await personalizedLearningPath({learningTopic: values.learningTopic});
-      if (result && result.roadmap) {
-        setRoadmap(result);
+      const result = await chat(newMessages);
+      if (typeof result === "string" && result) {
+        setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content: result },
+        ]);
       } else {
-        setError("Failed to generate a roadmap. The AI might be busy, please try again.");
+         setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content: "I'm sorry, I couldn't get a response. Please try again." },
+        ]);
       }
     } catch (e) {
-       setError("An error occurred while generating the roadmap. Please try again later.");
-       console.error(e);
+      console.error(e);
+      setMessages((prevMessages) => [
+          ...prevMessages,
+          { role: "assistant", content: "An error occurred. Please try again later." },
+        ]);
     }
     setIsLoading(false);
   };
-  
-  const renderLoadingSkeleton = () => (
-    <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-             <Card key={i}>
-                <CardHeader>
-                    <Skeleton className="h-6 w-2/5" />
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-4/5" />
-                    <div className="pt-4">
-                        <Skeleton className="h-5 w-1/4 mb-2" />
-                        <div className="space-y-2">
-                             <Skeleton className="h-8 w-full" />
-                             <Skeleton className="h-8 w-full" />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-        ))}
-    </div>
-  );
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4 md:p-8">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">AI Copilot (Learning Path Test)</h1>
-        <p className="text-muted-foreground text-lg mt-2">
-          Tell us what you want to master, and we'll generate a personalized roadmap for you.
-        </p>
-      </div>
+    <div className="flex flex-col h-full flex-1">
+      <header className="p-4 border-b">
+         <h1 className="text-lg font-semibold md:text-2xl">AI Co-founder</h1>
+         <p className="text-muted-foreground text-sm">
+           Your partner in brainstorming, validation, and strategy.
+         </p>
+      </header>
 
-      <Card className="max-w-2xl mx-auto w-full">
-        <CardContent className="p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="flex items-center gap-4">
-              <FormField
-                control={form.control}
-                name="learningTopic"
-                render={({ field }) => (
-                  <FormItem className="flex-grow">
-                    <FormControl>
-                      <Input 
-                        placeholder="e.g., 'Learn how to build a SaaS product' or 'Master digital marketing'" 
-                        {...field}
-                        className="h-12 text-base"
-                      />
-                    </FormControl>
-                    <FormMessage className="pl-2" />
-                  </FormItem>
+      <main className="flex-1 overflow-hidden p-4">
+        <ScrollArea className="h-full pr-4">
+          <div className="space-y-6 max-w-4xl mx-auto">
+          {messages.length === 0 && (
+              <div className="text-center text-muted-foreground pt-16">
+                  <Sparkles className="mx-auto h-12 w-12 mb-4" />
+                  <h2 className="text-xl font-semibold">Start the Conversation</h2>
+                  <p className="mt-2">What's on your mind? Ask for startup names, feature ideas, or a product description!</p>
+              </div>
+          )}
+
+          {messages.map((message, index) => (
+            <div key={index} className={`flex items-start gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
+                {message.role === "assistant" && (
+                    <Avatar className="h-9 w-9 border">
+                        <div className="h-full w-full flex items-center justify-center bg-primary text-primary-foreground">
+                            <Sparkles className="h-5 w-5"/>
+                        </div>
+                    </Avatar>
                 )}
-              />
-              <Button type="submit" disabled={isLoading} size="lg" className="h-12">
-                {isLoading ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Sparkles className="mr-2" />
+                 <div className={`rounded-lg p-3 max-w-[80%] ${
+                    message.role === "user"
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                  }`}>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                 </div>
+                 {message.role === "user" && (
+                    <Avatar className="h-9 w-9 border">
+                        <AvatarImage src={user?.avatar ?? undefined} />
+                        <AvatarFallback><User /></AvatarFallback>
+                    </Avatar>
                 )}
-                Generate Roadmap
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
-      
-      <div className="max-w-4xl mx-auto w-full mt-4">
-        {isLoading && renderLoadingSkeleton()}
-        {error && <p className="text-center text-red-500">{error}</p>}
-        {roadmap && (
-            <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-center">Your Roadmap to Mastering: {form.getValues('learningTopic')}</h2>
-                {roadmap.roadmap.map((step, index) => (
-                    <Card key={index} className="overflow-hidden">
-                        <CardHeader>
-                            <CardTitle className="text-xl">{index + 1}. {step.title}</CardTitle>
-                            <CardDescription>{step.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                             <Accordion type="single" collapsible className="w-full">
-                                <AccordionItem value="videos">
-                                    <AccordionTrigger className="text-lg font-semibold">
-                                        <div className="flex items-center gap-2">
-                                            <Youtube className="text-red-600" /> Recommended Videos
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
-                                        {step.videos.map(video => (
-                                            <a key={video.videoId} href={`https://www.youtube.com/watch?v=${video.videoId}`} target="_blank" rel="noopener noreferrer" className="block group">
-                                                <div className="relative aspect-video overflow-hidden rounded-lg">
-                                                    <img src={`https://img.youtube.com/vi/${video.videoId}/hqdefault.jpg`} alt={video.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
-                                                </div>
-                                                <p className="mt-2 text-sm font-medium group-hover:text-primary">{video.title}</p>
-                                            </a>
-                                        ))}
-                                    </AccordionContent>
-                                </AccordionItem>
-                                 <AccordionItem value="resources">
-                                    <AccordionTrigger className="text-lg font-semibold">
-                                         <div className="flex items-center gap-2">
-                                            <BookOpen className="text-sky-600" /> Additional Resources
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent className="pt-4">
-                                       <ul className="space-y-2 list-disc list-inside">
-                                         {step.resources.map(resource => (
-                                             <li key={resource.url}>
-                                                 <a href={resource.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                                                    {resource.title}
-                                                 </a>
-                                             </li>
-                                         ))}
-                                       </ul>
-                                    </AccordionContent>
-                                </AccordionItem>
-                             </Accordion>
-                        </CardContent>
-                    </Card>
-                ))}
             </div>
-        )}
-      </div>
+          ))}
+           {isLoading && (
+               <div className="flex items-start gap-4">
+                   <Avatar className="h-9 w-9 border">
+                        <div className="h-full w-full flex items-center justify-center bg-primary text-primary-foreground">
+                            <Sparkles className="h-5 w-5"/>
+                        </div>
+                    </Avatar>
+                    <div className="rounded-lg p-3 bg-muted flex items-center space-x-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span className="text-sm">Thinking...</span>
+                    </div>
+               </div>
+           )}
+          </div>
+        </ScrollArea>
+      </main>
+
+      <footer className="p-4 border-t">
+        <Card className="max-w-4xl mx-auto">
+            <CardContent className="p-2">
+                <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="flex items-center gap-2">
+                    <FormField
+                    control={form.control}
+                    name="prompt"
+                    render={({ field }) => (
+                        <FormItem className="flex-grow">
+                        <FormControl>
+                            <Input
+                            placeholder="e.g., 'Suggest some names for a fitness app'"
+                            {...field}
+                            className="h-10 border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                            autoComplete="off"
+                            />
+                        </FormControl>
+                        <FormMessage className="pl-2" />
+                        </FormItem>
+                    )}
+                    />
+                    <Button type="submit" disabled={isLoading} size="icon">
+                        <Send className="h-5 w-5" />
+                    </Button>
+                </form>
+                </Form>
+            </CardContent>
+        </Card>
+      </footer>
     </div>
   );
 }
