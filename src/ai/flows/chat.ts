@@ -21,6 +21,8 @@ const chatPrompt = ai.definePrompt({
         - You are conversational and friendly.
         - Answer the user's prompt directly and concisely.
     `,
+    input: { schema: z.string() },
+    prompt: `{{input}}`,
 });
 
 const simpleChatFlow = ai.defineFlow(
@@ -31,13 +33,14 @@ const simpleChatFlow = ai.defineFlow(
     },
     async (prompt) => {
         const result = await chatPrompt(prompt);
-        const output = result?.output;
+        // Using .text() is the correct way to get the string output from the model.
+        const outputText = result.text();
 
-        if (!output) {
+        if (!outputText) {
             return "I'm sorry, I encountered an issue and couldn't generate a response. Please try again.";
         }
         
-        return output.text || "I'm not sure how to respond to that. Could you try rephrasing?";
+        return outputText;
     }
 );
 
