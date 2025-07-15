@@ -6,7 +6,6 @@ import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/hooks/use-theme';
 import { PlanProvider } from '@/hooks/use-plan';
 import { UserProvider } from '@/hooks/use-user';
-import { usePathname } from 'next/navigation';
 import RootLayoutClient from './layout-client';
 
 export const metadata: Metadata = {
@@ -40,4 +39,3 @@ export default function RootLayout({
     </html>
   );
 }
-
