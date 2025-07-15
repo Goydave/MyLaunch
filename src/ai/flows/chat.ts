@@ -15,7 +15,7 @@ import { suggestFeatures } from './feature-suggestion';
 import { generateProductDescription } from './content-generation';
 import { stripIndents } from 'common-tags';
 
-export const MessageSchema = z.object({
+const MessageSchema = z.object({
     role: z.enum(['user', 'assistant']),
     content: z.string(),
 });
@@ -96,7 +96,6 @@ const chatFlow = ai.defineFlow(
         }
         
         if (output.toolRequests.length > 0) {
-            // Handle tool requests and format the output
             const toolRequest = output.toolRequests[0];
             const toolResponse = await toolRequest.run();
 
@@ -120,7 +119,6 @@ const chatFlow = ai.defineFlow(
                 `;
             }
 
-            // Fallback for any other tool response type
             return `I have used the ${toolRequest.name} tool and here is the result: ${JSON.stringify(toolResponse, null, 2)}`;
         }
         
