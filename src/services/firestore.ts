@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, Timestamp } from "firebase/firestore";
 import type { CoFounderInput, CoFounderOutput } from "@/ai/flows/chat";
 
 /**
@@ -38,7 +38,7 @@ export async function saveCopilotSession(
 
 export type CopilotSession = {
     id: string;
-    createdAt: Date;
+    createdAt: string; // Changed to string to prevent serialization issues
     prompt: CoFounderInput;
     response: CoFounderOutput;
 }
@@ -60,10 +60,11 @@ export async function getUserCopilotSessions(userId: string): Promise<CopilotSes
         
         const sessions: CopilotSession[] = querySnapshot.docs.map(doc => {
             const data = doc.data();
+            const createdAtTimestamp = data.createdAt as Timestamp;
             return {
                 id: doc.id,
-                // Firestore timestamps need to be converted to JS Date objects
-                createdAt: data.createdAt?.toDate(), 
+                // Convert Firestore timestamp to ISO string to avoid serialization errors
+                createdAt: createdAtTimestamp ? createdAtTimestamp.toDate().toISOString() : new Date().toISOString(),
                 prompt: data.prompt,
                 response: data.response,
             } as CopilotSession;

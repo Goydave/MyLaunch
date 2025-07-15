@@ -192,7 +192,7 @@ export default function CopilotPage() {
                     className="h-auto py-2 px-4 flex flex-col items-start"
                   >
                     <span className="font-semibold line-clamp-1 text-left">{session.prompt.businessIdea}</span>
-                    <span className="text-xs text-muted-foreground">{formatDistanceToNow(session.createdAt, { addSuffix: true })}</span>
+                    <span className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(session.createdAt), { addSuffix: true })}</span>
                   </Button>
                 ))}
               </div>
