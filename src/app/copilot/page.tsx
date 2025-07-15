@@ -2,7 +2,7 @@
 // src/app/copilot/page.tsx
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,11 +10,10 @@ import { Bot, Loader2, Send, Sparkles, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Form, FormControl, FormField, FormItem } from "@/components/ui/form";
 import { cn } from "@/lib/utils";
-import { type Message, chat } from "@/ai/flows/chat";
+import { chat } from "@/ai/flows/chat";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 const formSchema = z.object({
   prompt: z.string().min(1, "Message cannot be empty."),
@@ -23,49 +22,31 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CopilotPage() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [response, setResponse] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { prompt: "" },
   });
-  
-  useEffect(() => {
-    if(scrollAreaRef.current) {
-        scrollAreaRef.current.scrollTo({
-            top: scrollAreaRef.current.scrollHeight,
-            behavior: "smooth"
-        });
-    }
-  }, [messages]);
-
 
   const handleSubmit = async (values: FormValues) => {
-    const userMessage: Message = { role: "user", content: values.prompt };
-    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
+    setResponse(null);
+    setError(null);
     form.reset();
 
     try {
-      const updatedHistory: Message[] = [...messages, userMessage];
-      const response = await chat(updatedHistory);
-      
-      if (typeof response === "string" && response.length > 0) {
-        const assistantMessage: Message = { role: "assistant", content: response };
-        setMessages((prev) => [...prev, assistantMessage]);
+      const result = await chat(values.prompt);
+      if (typeof result === "string" && result.length > 0) {
+        setResponse(result);
       } else {
          throw new Error("Received an invalid response from the AI.");
       }
-
-    } catch (error) {
-      console.error("Chat error:", error);
-      const errorMessage: Message = {
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+    } catch (e: any) {
+      console.error("Chat error:", e);
+      setError("Sorry, I encountered an error. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -81,46 +62,33 @@ export default function CopilotPage() {
             </p>
         </header>
 
-        {/* Chat Area */}
-        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        {/* Content Area */}
+        <div className="flex-1 p-4 overflow-y-auto">
             <div className="space-y-6 max-w-4xl mx-auto">
-                {messages.length === 0 && (
-                    <div className="text-center text-muted-foreground pt-16">
-                        <Sparkles className="mx-auto h-12 w-12 mb-4" />
-                        <h2 className="text-xl font-semibold">Chat with your AI Co-founder</h2>
-                        <p className="mt-2">Ask me to generate project names, suggest features, write product descriptions, or anything else to help build your startup!</p>
-                    </div>
-                )}
-                {messages.map((message, index) => (
-                    <div key={index} className={cn("flex items-start gap-4", message.role === "user" ? "justify-end" : "justify-start")}>
-                        {message.role === 'assistant' && (
-                            <Avatar className="w-8 h-8 border">
-                                <AvatarFallback><Bot /></AvatarFallback>
-                            </Avatar>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>AI Response</CardTitle>
+                        <CardDescription>The AI's response will appear here.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="min-h-[200px]">
+                        {isLoading && (
+                            <div className="flex items-center space-x-2">
+                                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                                <span className="text-sm text-muted-foreground">Thinking...</span>
+                            </div>
                         )}
-                        <div className={cn("max-w-2xl rounded-lg p-3", message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        </div>
-                         {message.role === 'user' && (
-                            <Avatar className="w-8 h-8 border">
-                               <AvatarFallback><User /></AvatarFallback>
-                            </Avatar>
+                        {error && <p className="text-sm text-destructive">{error}</p>}
+                        {response && <p className="text-sm whitespace-pre-wrap">{response}</p>}
+                         {!isLoading && !response && !error && (
+                            <div className="text-center text-muted-foreground pt-10">
+                                <Sparkles className="mx-auto h-12 w-12 mb-4" />
+                                <p>Ask me anything to help build your startup!</p>
+                            </div>
                         )}
-                    </div>
-                ))}
-                 {isLoading && (
-                    <div className="flex items-start gap-4">
-                         <Avatar className="w-8 h-8 border">
-                            <AvatarFallback><Bot /></AvatarFallback>
-                        </Avatar>
-                        <div className="max-w-2xl rounded-lg p-3 bg-muted flex items-center space-x-2">
-                             <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                             <span className="text-sm text-muted-foreground">Thinking...</span>
-                        </div>
-                    </div>
-                )}
+                    </CardContent>
+                </Card>
             </div>
-        </ScrollArea>
+        </div>
         
         {/* Input Form */}
         <div className="p-4 border-t bg-background">
