@@ -1,3 +1,4 @@
+
 // src/ai/flows/chat.ts
 'use server';
 /**
@@ -66,7 +67,7 @@ const chatPrompt = ai.definePrompt({
     name: 'chatPrompt',
     tools: [ideaNameTool, featureSuggestionTool, productDescriptionTool],
     system: stripIndents`
-        You are Gemini Assistant, a helpful and friendly AI for the MyLaunch application.
+        You are an AI Co-founder, a helpful and friendly AI for the MyLaunch application.
         Your goal is to help users build their startup ideas.
         - You are conversational and friendly.
         - You have access to tools to help the user.

@@ -75,9 +75,9 @@ export default function CopilotPage() {
     <div className="flex flex-col h-[calc(100vh_-_theme(space.14))]">
         {/* Header */}
         <header className="p-4 border-b">
-            <h1 className="text-lg font-semibold md:text-xl">Gemini Assistant</h1>
+            <h1 className="text-lg font-semibold md:text-xl">AI Co-founder</h1>
             <p className="text-muted-foreground text-sm">
-                Your creative partner, powered by Gemini.
+                Your creative partner, powered by generative AI.
             </p>
         </header>
 
@@ -87,7 +87,7 @@ export default function CopilotPage() {
                 {messages.length === 0 && (
                     <div className="text-center text-muted-foreground pt-16">
                         <Sparkles className="mx-auto h-12 w-12 mb-4" />
-                        <h2 className="text-xl font-semibold">Chat with Gemini</h2>
+                        <h2 className="text-xl font-semibold">Chat with your AI Co-founder</h2>
                         <p className="mt-2">Ask me to generate project names, suggest features, write product descriptions, or anything else to help build your startup!</p>
                     </div>
                 )}
